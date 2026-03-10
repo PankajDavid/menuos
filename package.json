@@ -1,0 +1,13 @@
+{
+  "name": "menuos-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd menuos && npm install && npm run build",
+    "start": "cd menuos/backend && npm start",
+    "dev": "cd menuos && npm run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
