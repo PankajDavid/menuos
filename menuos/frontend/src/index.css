@@ -1,0 +1,23 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --gold: #C8A84B;
+  --gold-light: #E4C97A;
+  --navy: #1A1A2E;
+  --cream: #F2E8D0;
+  --cream-muted: #A89880;
+  --bg: #0C0A07;
+  --card: #161310;
+  --border: #2A2520;
+  --green: #16A34A;
+  --red: #DC2626;
+  --blue: #2563EB;
+  --amber: #D97706;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f8f9fa;
+  color: #1e293b;
+  line-height: 1.5;
+}
+button { cursor: pointer; font-family: inherit; }
+input, textarea, select { font-family: inherit; }
