@@ -23,7 +23,9 @@ export async function tenantResolver(req, res, next) {
 export function requireTenantAccess(req, res, next) {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
   if (req.user.role === 'platform_admin') return next();
-  if (req.tenant && req.user.restaurant_id !== req.tenant.id) {
+  // JWT payload uses restaurantId, not restaurant_id
+  const userRestaurantId = req.user.restaurantId || req.user.restaurant_id;
+  if (req.tenant && userRestaurantId !== req.tenant.id) {
     return res.status(403).json({ error: 'Access denied to this restaurant' });
   }
   next();
