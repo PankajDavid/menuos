@@ -128,9 +128,12 @@ RETURNS TRIGGER AS $$
 BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER orders_updated_at
-  BEFORE UPDATE ON orders
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+DO $$ BEGIN
+    CREATE TRIGGER orders_updated_at
+      BEFORE UPDATE ON orders
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
