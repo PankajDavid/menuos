@@ -45,11 +45,19 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 4000;
 
 async function boot() {
-  await initDB();
+  // Start server first so healthcheck passes
   initSocket(httpServer);
   httpServer.listen(PORT, () => {
     console.log(`🚀 MenuOS API running on http://localhost:${PORT}`);
   });
+  
+  // Initialize DB in background (don't block server startup)
+  try {
+    await initDB();
+  } catch (err) {
+    console.error('⚠️ Database connection failed:', err.message);
+    console.log('Server is running but database features will not work');
+  }
 }
 
 boot().catch(console.error);
