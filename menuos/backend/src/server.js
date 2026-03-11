@@ -45,10 +45,19 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 4000;
 
 async function boot() {
+  console.log('🚀 Starting MenuOS API...');
+  console.log(`📡 PORT: ${PORT}`);
+  
   // Start server first so healthcheck passes
-  initSocket(httpServer);
-  httpServer.listen(PORT, () => {
-    console.log(`🚀 MenuOS API running on http://localhost:${PORT}`);
+  try {
+    initSocket(httpServer);
+    console.log('✅ Socket.IO initialized');
+  } catch (err) {
+    console.error('⚠️ Socket initialization failed:', err.message);
+  }
+  
+  httpServer.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 MenuOS API running on port ${PORT}`);
   });
   
   // Initialize DB in background (don't block server startup)
@@ -60,4 +69,7 @@ async function boot() {
   }
 }
 
-boot().catch(console.error);
+boot().catch((err) => {
+  console.error('💥 Fatal error during startup:', err);
+  process.exit(1);
+});
