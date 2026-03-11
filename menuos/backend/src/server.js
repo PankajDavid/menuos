@@ -6,6 +6,7 @@ import { createServer } from 'http';
 import { initSocket } from './socket/index.js';
 import { initDB } from './db/pool.js';
 import { migrate } from './db/migrate.js';
+import { seedMenu } from './db/seed-menu.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
 
@@ -65,6 +66,11 @@ async function boot() {
   try {
     await initDB();
     await migrate();
+    
+    // Seed sample menu for Panky's restaurant
+    if (process.env.SEED_MENU === 'true') {
+      await seedMenu().catch(err => console.log('Menu seeding skipped:', err.message));
+    }
   } catch (err) {
     console.error('⚠️ Database initialization failed:', err.message);
     console.log('Server is running but database features will not work');

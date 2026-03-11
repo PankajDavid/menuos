@@ -1,6 +1,7 @@
 import { query } from './pool.js';
+import { fileURLToPath } from 'url';
 
-const restaurantSlug = 'pankys-kitchen';
+const restaurantSlug = 'pankys';
 
 const menuItems = [
   // Burgers
@@ -39,17 +40,24 @@ const menuItems = [
   { name: 'Gulab Jamun (2 pcs)', category: 'Desserts', description: 'Soft fried dumplings in sugar syrup', price: 49, tags: ['sweet', 'indian'] },
 ];
 
-async function seedMenu() {
+export async function seedMenu() {
   try {
     // Get restaurant ID
     const restaurantResult = await query('SELECT id FROM restaurants WHERE slug = $1', [restaurantSlug]);
     if (restaurantResult.rows.length === 0) {
       console.error('Restaurant not found:', restaurantSlug);
-      process.exit(1);
+      return;
     }
     
     const restaurantId = restaurantResult.rows[0].id;
     console.log(`🍽 Seeding menu for restaurant: ${restaurantSlug} (${restaurantId})`);
+    
+    // Check if menu already exists
+    const existingMenu = await query('SELECT COUNT(*) FROM menu_items WHERE restaurant_id = $1', [restaurantId]);
+    if (parseInt(existingMenu.rows[0].count) > 0) {
+      console.log('Menu already exists, skipping seed');
+      return;
+    }
     
     let added = 0;
     for (const item of menuItems) {
@@ -69,8 +77,11 @@ async function seedMenu() {
     console.log(`\n🎉 Successfully added ${added}/${menuItems.length} menu items!`);
   } catch (err) {
     console.error('💥 Seeding failed:', err.message);
-    process.exit(1);
+    throw err;
   }
 }
 
-seedMenu();
+// Run if called directly
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  seedMenu().then(() => process.exit(0)).catch(() => process.exit(1));
+}
