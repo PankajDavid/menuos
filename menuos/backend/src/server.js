@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import { createServer } from 'http';
 import { initSocket } from './socket/index.js';
 import { initDB } from './db/pool.js';
+import { migrate } from './db/migrate.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
 
@@ -60,11 +61,12 @@ async function boot() {
     console.log(`🚀 MenuOS API running on port ${PORT}`);
   });
   
-  // Initialize DB in background (don't block server startup)
+  // Initialize DB and run migrations in background (don't block server startup)
   try {
     await initDB();
+    await migrate();
   } catch (err) {
-    console.error('⚠️ Database connection failed:', err.message);
+    console.error('⚠️ Database initialization failed:', err.message);
     console.log('Server is running but database features will not work');
   }
 }
