@@ -10,11 +10,13 @@ export default function CheckoutPage() {
   const { items, total, clearCart } = useCartStore();
   const [mobile, setMobile] = useState('');
   const [tableNumber, setTableNumber] = useState(state?.tableNumber || '');
+  const [customerName, setCustomerName] = useState('');
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState('idle'); // idle | paying | placing | done | error
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleOrder = async () => {
+    if (!customerName.trim()) return setErrorMsg('Please enter your name');
     if (!mobile || mobile.length < 10) return setErrorMsg('Enter a valid mobile number');
     if (!tableNumber) return setErrorMsg('Table number is required');
     setErrorMsg(''); setStatus('paying');
@@ -30,6 +32,7 @@ export default function CheckoutPage() {
 
       // Step 2: Create order
       const order = await orderApi.create(slug, {
+        customer_name: customerName,
         mobile_number: mobile,
         table_number: tableNumber,
         notes,
@@ -71,13 +74,18 @@ export default function CheckoutPage() {
         {/* Details */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 24 }}>
           <div>
+            <label style={{ fontSize: 13, color: '#A89880', display: 'block', marginBottom: 6 }}>Your Name *</label>
+            <input value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="John Doe"
+              style={{ width: '100%', padding: '10px 14px', background: '#161310', border: '1px solid #2A2520', borderRadius: 6, color: '#F2E8D0', fontSize: 15 }} />
+          </div>
+          <div>
             <label style={{ fontSize: 13, color: '#A89880', display: 'block', marginBottom: 6 }}>Mobile Number *</label>
             <input value={mobile} onChange={e => setMobile(e.target.value)} placeholder="+91 98765 43210" type="tel"
               style={{ width: '100%', padding: '10px 14px', background: '#161310', border: '1px solid #2A2520', borderRadius: 6, color: '#F2E8D0', fontSize: 15 }} />
           </div>
           <div>
             <label style={{ fontSize: 13, color: '#A89880', display: 'block', marginBottom: 6 }}>Table Number *</label>
-            <input value={tableNumber} onChange={e => setTableNumber(e.target.value)} placeholder="e.g. 5"
+            <input value={tableNumber} onChange={e => setTableNumber(e.target.value)} placeholder="e.g. T2, 5, etc."
               style={{ width: '100%', padding: '10px 14px', background: '#161310', border: '1px solid #2A2520', borderRadius: 6, color: '#F2E8D0', fontSize: 15 }} />
           </div>
           <div>

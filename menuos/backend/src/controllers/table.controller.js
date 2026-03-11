@@ -48,7 +48,9 @@ export async function getQRCode(req, res, next) {
 
     const table = result.rows[0];
     const base = process.env.QR_BASE_URL || 'https://menuos.app';
-    const url = `${base}/r/${req.tenant.slug}/menu?table=${table.table_number}`;
+    // Common QR code - points to menu without table number
+    // Customer will enter table number at checkout
+    const url = `${base}/r/${req.tenant.slug}/menu`;
 
     const qrDataUrl = await QRCode.toDataURL(url, {
       width: 400, margin: 2,
