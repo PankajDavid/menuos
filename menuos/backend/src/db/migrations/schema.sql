@@ -4,7 +4,10 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ── RESTAURANTS ───────────────────────────────────────────────────────────
-CREATE TYPE subscription_plan AS ENUM ('free', 'basic', 'pro');
+DO $$ BEGIN
+    CREATE TYPE subscription_plan AS ENUM ('free', 'basic', 'pro');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 CREATE TABLE IF NOT EXISTS restaurants (
   id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -22,7 +25,10 @@ CREATE TABLE IF NOT EXISTS restaurants (
 );
 
 -- ── USERS ─────────────────────────────────────────────────────────────────
-CREATE TYPE user_role AS ENUM ('admin', 'staff', 'kitchen', 'platform_admin');
+DO $$ BEGIN
+    CREATE TYPE user_role AS ENUM ('admin', 'staff', 'kitchen', 'platform_admin');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 CREATE TABLE IF NOT EXISTS users (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -64,8 +70,15 @@ CREATE TABLE IF NOT EXISTS restaurant_tables (
 );
 
 -- ── ORDERS ────────────────────────────────────────────────────────────────
-CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
-CREATE TYPE order_status AS ENUM ('pending', 'preparing', 'ready', 'served', 'cancelled');
+DO $$ BEGIN
+    CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE order_status AS ENUM ('pending', 'preparing', 'ready', 'served', 'cancelled');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 CREATE TABLE IF NOT EXISTS orders (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
