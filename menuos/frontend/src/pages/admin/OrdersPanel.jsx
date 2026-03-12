@@ -1,9 +1,88 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { orderApi } from '../../api/queries.js';
+import { orderApi, restaurantApi } from '../../api/queries.js';
 
 const STATUS_COLORS = { pending:'#2563EB', preparing:'#D97706', ready:'#16A34A', served:'#64748b', cancelled:'#dc2626' };
+
+function PrintSlip({ order, restaurantName }) {
+  const slipRef = useRef();
+  
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Order #${order.order_number}</title>
+          <style>
+            @media print {
+              body { margin: 0; padding: 10px; font-family: 'Courier New', monospace; font-size: 12px; }
+              .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
+              .header h2 { margin: 0; font-size: 16px; }
+              .header p { margin: 5px 0; }
+              .info { margin: 10px 0; }
+              .info-row { display: flex; justify-content: space-between; margin: 5px 0; }
+              .items { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; margin: 10px 0; }
+              .item { display: flex; justify-content: space-between; margin: 5px 0; }
+              .item-name { flex: 1; }
+              .item-qty { width: 30px; text-align: center; }
+              .item-price { width: 60px; text-align: right; }
+              .total { font-weight: bold; font-size: 14px; text-align: right; margin-top: 10px; }
+              .footer { text-align: center; margin-top: 20px; font-size: 10px; border-top: 1px dashed #000; padding-top: 10px; }
+              .notes { background: #fff3cd; padding: 5px; margin: 10px 0; font-style: italic; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h2>${restaurantName || 'Restaurant'}</h2>
+            <p>Order #${order.order_number}</p>
+            <p>${new Date(order.created_at).toLocaleString()}</p>
+          </div>
+          
+          <div class="info">
+            <div class="info-row"><span>Table:</span><span>${order.table_number}</span></div>
+            <div class="info-row"><span>Customer:</span><span>${order.customer_name || 'Guest'}</span></div>
+            <div class="info-row"><span>Mobile:</span><span>${order.mobile_number}</span></div>
+            <div class="info-row"><span>Status:</span><span>${order.order_status.toUpperCase()}</span></div>
+          </div>
+          
+          <div class="items">
+            ${order.items?.filter(Boolean).map(item => `
+              <div class="item">
+                <span class="item-name">${item.name}</span>
+                <span class="item-qty">×${item.quantity}</span>
+                <span class="item-price">₹${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="total">
+            Total: ₹${parseFloat(order.total_amount).toFixed(2)}
+          </div>
+          
+          ${order.notes ? `<div class="notes">Notes: ${order.notes}</div>` : ''}
+          
+          <div class="footer">
+            <p>Thank you for your order!</p>
+            <p>Please keep this slip for your records</p>
+          </div>
+          
+          <script>
+            window.onload = function() { window.print(); };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  return (
+    <button onClick={handlePrint} style={{ padding: '6px 12px', background: '#1A1A2E', color: '#C8A84B', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>
+      🖨️ Print Slip
+    </button>
+  );
+}
 
 export default function OrdersPanel() {
   const { slug } = useParams();
@@ -14,6 +93,11 @@ export default function OrdersPanel() {
     queryKey: ['orders', slug, filter],
     queryFn: () => orderApi.getAll(slug, filter ? { status: filter } : {}),
     refetchInterval: 15000,
+  });
+
+  const { data: restaurant } = useQuery({
+    queryKey: ['restaurant', slug],
+    queryFn: () => restaurantApi.get(slug),
   });
 
   const updateMutation = useMutation({
@@ -63,13 +147,16 @@ export default function OrdersPanel() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: '#94a3b8', fontSize: 13 }}>{new Date(order.created_at).toLocaleString()}</span>
-                {!['served','cancelled'].includes(order.order_status) && (
-                  <select value={order.order_status}
-                    onChange={e => updateMutation.mutate({ id: order.id, status: e.target.value })}
-                    style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, cursor: 'pointer' }}>
-                    {['pending','preparing','ready','served','cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                )}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <PrintSlip order={order} restaurantName={restaurant?.name} />
+                  {!['served','cancelled'].includes(order.order_status) && (
+                    <select value={order.order_status}
+                      onChange={e => updateMutation.mutate({ id: order.id, status: e.target.value })}
+                      style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, cursor: 'pointer' }}>
+                      {['pending','preparing','ready','served','cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  )}
+                </div>
               </div>
             </div>
           ))}
