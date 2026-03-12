@@ -1,6 +1,98 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { restaurantApi } from '../../api/queries.js';
+
+function QRCodeDisplay({ url, restaurantName }) {
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  
+  // Generate QR code using a free API
+  const generateQR = async () => {
+    try {
+      const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}`);
+      const blob = await response.blob();
+      const dataUrl = URL.createObjectURL(blob);
+      setQrDataUrl(dataUrl);
+    } catch (err) {
+      console.error('Failed to generate QR:', err);
+    }
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank', 'width=500,height=600');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Menu QR Code - ${restaurantName}</title>
+          <style>
+            @media print {
+              body { margin: 0; padding: 20px; font-family: Arial, sans-serif; text-align: center; }
+              .container { border: 2px dashed #ccc; padding: 30px; margin: 20px; }
+              h1 { font-size: 24px; margin-bottom: 10px; }
+              p { color: #666; margin: 10px 0; }
+              .qr { margin: 20px 0; }
+              .instructions { font-size: 14px; color: #888; margin-top: 20px; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>${restaurantName}</h1>
+            <p>Scan to view our menu & order</p>
+            <div class="qr">
+              <img src="${qrDataUrl}" width="300" height="300" />
+            </div>
+            <p style="font-size: 12px; word-break: break-all;">${url}</p>
+            <div class="instructions">
+              <p>1. Scan this QR code with your phone camera</p>
+              <p>2. Browse the menu and add items to cart</p>
+              <p>3. Enter your table number and place order</p>
+            </div>
+          </div>
+          <script>window.onload = function() { window.print(); };</script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  return (
+    <div style={{ background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginTop: 24 }}>
+      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: '#1e293b' }}>📱 Menu QR Code</h2>
+      <p style={{ color: '#64748b', marginBottom: 16, fontSize: 14 }}>
+        Print this QR code and place on tables or provide to customers. All customers will scan the same code and enter their table number at checkout.
+      </p>
+      
+      {!qrDataUrl ? (
+        <button 
+          onClick={generateQR}
+          style={{ padding: '10px 20px', background: '#C8A84B', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+        >
+          Generate QR Code
+        </button>
+      ) : (
+        <div style={{ textAlign: 'center' }}>
+          <img src={qrDataUrl} width="250" height="250" style={{ border: '1px solid #e2e8f0', borderRadius: 8 }} />
+          <div style={{ marginTop: 16, display: 'flex', gap: 12, justifyContent: 'center' }}>
+            <button 
+              onClick={handlePrint}
+              style={{ padding: '10px 20px', background: '#1A1A2E', color: '#C8A84B', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            >
+              🖨️ Print QR Code
+            </button>
+            <button 
+              onClick={() => setQrDataUrl('')}
+              style={{ padding: '10px 20px', background: '#f1f5f9', color: '#374151', border: 'none', borderRadius: 8, fontSize: 14, cursor: 'pointer' }}
+            >
+              Regenerate
+            </button>
+          </div>
+          <p style={{ marginTop: 12, fontSize: 12, color: '#94a3b8', wordBreak: 'break-all' }}>{url}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function StatCard({ icon, label, value, color = '#2563EB' }) {
   return (
@@ -19,6 +111,9 @@ export default function AdminDashboard() {
     queryFn: () => restaurantApi.getAnalytics(slug),
     refetchInterval: 60000,
   });
+
+  // Use the current window location to build the menu URL
+  const menuUrl = `${window.location.origin}/r/${slug}/menu`;
 
   return (
     <div style={{ padding: 32 }}>
@@ -55,6 +150,9 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
+
+          {/* QR Code Section */}
+          <QRCodeDisplay url={menuUrl} restaurantName={analytics?.restaurant_name || 'Restaurant'} />
         </>
       ) : (
         <div style={{ color: '#94a3b8' }}>No data yet. Start accepting orders!</div>
