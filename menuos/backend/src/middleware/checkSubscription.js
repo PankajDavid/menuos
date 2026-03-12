@@ -1,16 +1,16 @@
 import { query } from '../db/pool.js';
 
 export const PLAN_LIMITS = {
-  free:   { menu_items: 20,  orders_per_month: 50,   tables: 3,  staff: 1 },
-  basic:  { menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: 5 },  // Admin 1 + Cashier 1 + Chef 1 + Waiter 2
-  pro:    { menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: 5 },  // + 25 item photos included
-  premium:{ menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: 5 },  // + AI Assistant
+  free:    { menu_items: 20,  orders_per_month: 50,   tables: 3,  staff: 1, photos: 0, videos: 0 },
+  basic:   { menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: 5, photos: Infinity, videos: 0 },  // Photos unlimited, no videos
+  pro:     { menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: 5, photos: Infinity, videos: 25 },  // 25 videos included
+  premium: { menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: 5, photos: Infinity, videos: Infinity },  // + AI Assistant
 };
 
 export const PLAN_PRICING = {
   free:    { monthly: 0,    setup: 0,    description: 'Limited features for trial' },
-  basic:   { monthly: 1500, setup: 4000, description: 'Unlimited items, orders, tables. Staff: 5 (Admin, Cashier, Chef, 2 Waiters)' },
-  pro:     { monthly: 2500, setup: 4000, description: 'Basic + 25 item photos (Rs. 300/additional item)' },
+  basic:   { monthly: 1500, setup: 4000, description: 'Unlimited items, orders, tables, photos. Staff: 5. No videos.' },
+  pro:     { monthly: 2500, setup: 4000, description: 'Basic + 25 item videos (10 sec each). Rs. 300 per additional video.' },
   premium: { monthly: 5000, setup: 4000, description: 'Pro + AI Assistant for customers' },
 };
 
