@@ -8,18 +8,24 @@ export const useCartStore = create(
       restaurantSlug: null,
 
       addItem: (item, slug) => {
+        console.log('CartStore: Adding item', item.name, 'for restaurant', slug);
         const { items, restaurantSlug } = get();
+        console.log('CartStore: Current items:', items.length, 'Current restaurant:', restaurantSlug);
         // Clear cart if switching restaurants
         if (restaurantSlug && restaurantSlug !== slug) {
+          console.log('CartStore: Switching restaurants, clearing cart');
           set({ items: [{ ...item, qty: 1 }], restaurantSlug: slug });
           return;
         }
         const existing = items.find(i => i.id === item.id);
+        let newItems;
         if (existing) {
-          set({ items: items.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i) });
+          newItems = items.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i);
         } else {
-          set({ items: [...items, { ...item, qty: 1 }], restaurantSlug: slug });
+          newItems = [...items, { ...item, qty: 1 }];
         }
+        console.log('CartStore: New items count:', newItems.length);
+        set({ items: newItems, restaurantSlug: slug });
       },
 
       removeItem: (id) => set(s => ({ items: s.items.filter(i => i.id !== id) })),
