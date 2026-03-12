@@ -7,7 +7,9 @@ export default function CheckoutPage() {
   const { slug } = useParams();
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { items, total, clearCart } = useCartStore();
+  const items = useCartStore(s => s.items);
+  const clearCart = useCartStore(s => s.clearCart);
+  const total = items.reduce((s, i) => s + parseFloat(i.price) * i.qty, 0);
   const [mobile, setMobile] = useState('');
   const [tableNumber, setTableNumber] = useState(state?.tableNumber || '');
   const [customerName, setCustomerName] = useState('');

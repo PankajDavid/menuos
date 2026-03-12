@@ -17,8 +17,9 @@ export default function CustomerMenu() {
   const [activeFilters, setActiveFilters] = useState(new Set());
   const [addedId, setAddedId] = useState(null);
   const addItem = useCartStore(s => s.addItem);
-  const count = useCartStore(s => s.count);
-  const total = useCartStore(s => s.total);
+  const items = useCartStore(s => s.items);
+  const count = items.reduce((s, i) => s + i.qty, 0);
+  const total = items.reduce((s, i) => s + parseFloat(i.price) * i.qty, 0);
 
   const { data: restaurant } = useQuery({ queryKey: ['restaurant', slug], queryFn: () => restaurantApi.get(slug) });
   const { data: menu = [], isLoading } = useQuery({ queryKey: ['menu', slug], queryFn: () => menuApi.getPublic(slug) });

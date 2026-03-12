@@ -8,12 +8,9 @@ export const useCartStore = create(
       restaurantSlug: null,
 
       addItem: (item, slug) => {
-        console.log('CartStore: Adding item', item.name, 'for restaurant', slug);
         const { items, restaurantSlug } = get();
-        console.log('CartStore: Current items:', items.length, 'Current restaurant:', restaurantSlug);
         // Clear cart if switching restaurants
         if (restaurantSlug && restaurantSlug !== slug) {
-          console.log('CartStore: Switching restaurants, clearing cart');
           set({ items: [{ ...item, qty: 1 }], restaurantSlug: slug });
           return;
         }
@@ -24,7 +21,6 @@ export const useCartStore = create(
         } else {
           newItems = [...items, { ...item, qty: 1 }];
         }
-        console.log('CartStore: New items count:', newItems.length);
         set({ items: newItems, restaurantSlug: slug });
       },
 
@@ -37,11 +33,11 @@ export const useCartStore = create(
 
       clearCart: () => set({ items: [], restaurantSlug: null }),
 
-      get total() {
+      getTotal: () => {
         return get().items.reduce((s, i) => s + parseFloat(i.price) * i.qty, 0);
       },
 
-      get count() {
+      getCount: () => {
         return get().items.reduce((s, i) => s + i.qty, 0);
       },
     }),
