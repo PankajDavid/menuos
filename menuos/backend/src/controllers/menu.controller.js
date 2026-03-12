@@ -27,16 +27,16 @@ export async function getAllMenuItems(req, res, next) {
 // POST /api/restaurants/:slug/menu
 export async function createMenuItem(req, res, next) {
   try {
-    const { name, category, description, price, tags, allergens, image_url, sort_order } = req.body;
+    const { name, category, description, price, tags, allergens, image_url, video_url, sort_order } = req.body;
     if (!name || !category || price == null) {
       return res.status(400).json({ error: 'name, category, and price are required' });
     }
     const result = await query(
       `INSERT INTO menu_items
-        (restaurant_id, name, category, description, price, tags, allergens, image_url, sort_order)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+        (restaurant_id, name, category, description, price, tags, allergens, image_url, video_url, sort_order)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
       [req.tenant.id, name, category, description || null, price,
-       tags || [], allergens || [], image_url || null, sort_order || 0]
+       tags || [], allergens || [], image_url || null, video_url || null, sort_order || 0]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) { next(err); }
@@ -46,7 +46,7 @@ export async function createMenuItem(req, res, next) {
 export async function updateMenuItem(req, res, next) {
   try {
     const { itemId } = req.params;
-    const { name, category, description, price, tags, allergens, image_url, sort_order, is_available } = req.body;
+    const { name, category, description, price, tags, allergens, image_url, video_url, sort_order, is_available } = req.body;
 
     const result = await query(
       `UPDATE menu_items SET
@@ -57,11 +57,12 @@ export async function updateMenuItem(req, res, next) {
         tags = COALESCE($5, tags),
         allergens = COALESCE($6, allergens),
         image_url = COALESCE($7, image_url),
-        sort_order = COALESCE($8, sort_order),
-        is_available = COALESCE($9, is_available)
-       WHERE id = $10 AND restaurant_id = $11
+        video_url = COALESCE($8, video_url),
+        sort_order = COALESCE($9, sort_order),
+        is_available = COALESCE($10, is_available)
+       WHERE id = $11 AND restaurant_id = $12
        RETURNING *`,
-      [name, category, description, price, tags, allergens, image_url, sort_order, is_available,
+      [name, category, description, price, tags, allergens, image_url, video_url, sort_order, is_available,
        itemId, req.tenant.id]
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Item not found' });

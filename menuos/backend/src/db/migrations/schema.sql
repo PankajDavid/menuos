@@ -51,12 +51,21 @@ CREATE TABLE IF NOT EXISTS menu_items (
   description     TEXT,
   price           DECIMAL(10,2) NOT NULL,
   image_url       TEXT,
+  video_url       TEXT,
   tags            TEXT[] DEFAULT '{}',
   allergens       TEXT[] DEFAULT '{}',
   is_available    BOOLEAN DEFAULT TRUE,
   sort_order      INTEGER DEFAULT 0,
   created_at      TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Add video_url column if it doesn't exist (for existing databases)
+DO $$
+BEGIN
+    ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS video_url TEXT;
+EXCEPTION
+    WHEN duplicate_column THEN NULL;
+END $$;
 
 -- ── TABLES ────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS restaurant_tables (
