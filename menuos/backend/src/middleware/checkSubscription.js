@@ -1,7 +1,7 @@
 import { query } from '../db/pool.js';
 
 export const PLAN_LIMITS = {
-  free:  { menu_items: 20,       orders_per_month: 50,   tables: 5,  staff: 1 },
+  free:  { menu_items: 100,      orders_per_month: 500,  tables: 10, staff: 2 },
   basic: { menu_items: Infinity, orders_per_month: 1000, tables: 25, staff: 3 },
   pro:   { menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: Infinity },
 };
