@@ -40,6 +40,16 @@ app.use('/api/platform', platformRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'ok', ts: new Date() }));
 
+// Redirect root and restaurant paths to frontend
+app.get('/', (req, res) => {
+  res.redirect(process.env.FRONTEND_URL || 'https://soothing-embrace-production.up.railway.app');
+});
+
+app.get('/r/:slug/*', (req, res) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'https://soothing-embrace-production.up.railway.app';
+  res.redirect(`${frontendUrl}${req.originalUrl}`);
+});
+
 // ── Error Handler ──────────────────────────────────────────────────────────
 app.use(errorHandler);
 
