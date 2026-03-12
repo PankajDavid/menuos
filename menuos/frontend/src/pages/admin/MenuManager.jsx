@@ -18,7 +18,8 @@ export default function MenuManager() {
 
   const createMutation = useMutation({
     mutationFn: (data) => menuApi.create(slug, data),
-    onSuccess: () => { invalidate(); setShowForm(false); setForm(EMPTY); }
+    onSuccess: () => { invalidate(); setShowForm(false); setForm(EMPTY); },
+    onError: (err) => { alert('Error creating item: ' + (err.response?.data?.error || err.message)); }
   });
 
   const updateMutation = useMutation({
@@ -50,7 +51,9 @@ export default function MenuManager() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('Form submitted', form);
     const data = parseForm();
+    console.log('Parsed data', data);
     if (editing) updateMutation.mutate({ id: editing, data });
     else createMutation.mutate(data);
   };
@@ -89,8 +92,9 @@ export default function MenuManager() {
               <input style={S.input} value={form.allergens || ''} onChange={e => setForm(p => ({ ...p, allergens: e.target.value }))} placeholder="dairy, nuts, gluten" />
             </div>
             <div style={{ gridColumn: '1/-1', display: 'flex', gap: 10, marginTop: 4 }}>
-              <button type="submit" style={{ background: '#C8A84B', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: 8, fontWeight: 600 }}>
-                {editing ? 'Update' : 'Create'}
+              <button type="submit" disabled={createMutation.isPending || updateMutation.isPending}
+                style={{ background: (createMutation.isPending || updateMutation.isPending) ? '#ccc' : '#C8A84B', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: 8, fontWeight: 600, cursor: (createMutation.isPending || updateMutation.isPending) ? 'not-allowed' : 'pointer' }}>
+                {createMutation.isPending ? 'Creating...' : updateMutation.isPending ? 'Updating...' : editing ? 'Update' : 'Create'}
               </button>
               <button type="button" onClick={() => { setShowForm(false); setEditing(null); setForm(EMPTY); }}
                 style={{ background: '#f1f5f9', color: '#374151', border: 'none', padding: '10px 20px', borderRadius: 8 }}>
