@@ -35,7 +35,6 @@ export default function CustomerMenu() {
   const toggleFilter = (f) => setActiveFilters(p => { const n = new Set(p); n.has(f) ? n.delete(f) : n.add(f); return n; });
 
   const handleAdd = (item) => {
-    console.log('Adding item:', item.name, 'to cart');
     addItem(item, slug);
     setAddedId(item.id);
     setTimeout(() => setAddedId(null), 1200);
@@ -102,11 +101,6 @@ export default function CustomerMenu() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Debug info */}
-        <div style={{ position: 'fixed', top: 10, right: 10, background: '#333', color: '#fff', padding: 10, borderRadius: 4, fontSize: 12, zIndex: 9999 }}>
-          Cart: {count} items, ₹{total?.toFixed(2) || '0.00'}
         </div>
 
         {/* Cart bar */}
