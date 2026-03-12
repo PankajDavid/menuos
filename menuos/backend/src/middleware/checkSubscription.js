@@ -1,9 +1,17 @@
 import { query } from '../db/pool.js';
 
 export const PLAN_LIMITS = {
-  free:  { menu_items: 100,      orders_per_month: 500,  tables: 10, staff: 2 },
-  basic: { menu_items: Infinity, orders_per_month: 1000, tables: 25, staff: 3 },
-  pro:   { menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: Infinity },
+  free:   { menu_items: 20,  orders_per_month: 50,   tables: 3,  staff: 1 },
+  basic:  { menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: 5 },  // Admin 1 + Cashier 1 + Chef 1 + Waiter 2
+  pro:    { menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: 5 },  // + 25 item photos included
+  premium:{ menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: 5 },  // + AI Assistant
+};
+
+export const PLAN_PRICING = {
+  free:    { monthly: 0,    setup: 0,    description: 'Limited features for trial' },
+  basic:   { monthly: 1500, setup: 4000, description: 'Unlimited items, orders, tables. Staff: 5 (Admin, Cashier, Chef, 2 Waiters)' },
+  pro:     { monthly: 2500, setup: 4000, description: 'Basic + 25 item photos (Rs. 300/additional item)' },
+  premium: { monthly: 5000, setup: 4000, description: 'Pro + AI Assistant for customers' },
 };
 
 export function checkMenuItemLimit(req, res, next) {
