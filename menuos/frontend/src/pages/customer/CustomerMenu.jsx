@@ -80,8 +80,21 @@ export default function CustomerMenu() {
           {filtered.map(item => (
             <div key={item.id}
               style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ fontSize: 44, textAlign: 'center', padding: '18px 0 8px', background: 'rgba(200,168,75,0.04)' }}>
-                {item.image_url ? <img src={item.image_url} alt={item.name} style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8 }} /> : '🍽'}
+              <div style={{ position: 'relative', textAlign: 'center', padding: '18px 0 8px', background: 'rgba(200,168,75,0.04)', minHeight: 100 }}>
+                {item.image_url ? (
+                  <img src={item.image_url} alt={item.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }} />
+                ) : (
+                  <span style={{ fontSize: 44 }}>🍽</span>
+                )}
+                {item.video_url && (
+                  <button 
+                    onClick={() => window.open(item.video_url, '_blank')}
+                    style={{ position: 'absolute', bottom: 8, right: 8, background: '#C8A84B', color: '#0C0A07', border: 'none', borderRadius: '50%', width: 32, height: 32, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title="Watch video"
+                  >
+                    ▶
+                  </button>
+                )}
               </div>
               <div style={{ padding: '0 16px 16px' }}>
                 <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: C.cream, margin: '6px 0' }}>{item.name}</div>
