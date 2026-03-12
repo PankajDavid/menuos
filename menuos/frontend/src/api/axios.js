@@ -26,9 +26,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear auth and redirect to login
-      localStorage.removeItem('menuos-auth');
-      window.location.href = '/login';
+      // Only redirect to login on protected routes
+      const currentPath = window.location.pathname;
+      const publicPaths = ['/r/', '/login', '/signup', '/'];
+      const isPublicPath = publicPaths.some(path => currentPath.startsWith(path) || currentPath === path);
+      
+      if (!isPublicPath) {
+        // Clear auth and redirect to login
+        localStorage.removeItem('menuos-auth');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
