@@ -4,14 +4,14 @@ export const PLAN_LIMITS = {
   free:    { menu_items: 20,  orders_per_month: 50,   tables: 3,  staff: 1, photos: 0, videos: 0 },
   basic:   { menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: 5, photos: Infinity, videos: 0 },  // Photos unlimited, no videos
   pro:     { menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: 5, photos: Infinity, videos: 25 },  // 25 videos included
-  premium: { menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: 5, photos: Infinity, videos: Infinity },  // + AI Assistant
+  premium: { menu_items: Infinity, orders_per_month: Infinity, tables: Infinity, staff: 5, photos: Infinity, videos: 25 },  // Same as Pro + AI Assistant
 };
 
 export const PLAN_PRICING = {
   free:    { monthly: 0,    setup: 0,    description: 'Limited features for trial' },
   basic:   { monthly: 1500, setup: 4000, description: 'Unlimited items, orders, tables, photos. Staff: 5. No videos.' },
   pro:     { monthly: 2500, setup: 4000, description: 'Basic + 25 item videos (10 sec each). Rs. 300 per additional video.' },
-  premium: { monthly: 5000, setup: 4000, description: 'Pro + AI Assistant for customers' },
+  premium: { monthly: 5000, setup: 4000, description: 'Pro + AI Assistant for customers. Same 25 videos + Rs. 300 per additional.' },
 };
 
 export function checkMenuItemLimit(req, res, next) {
