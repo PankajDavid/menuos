@@ -16,7 +16,9 @@ export default function CustomerMenu() {
   const [category, setCategory] = useState('All');
   const [activeFilters, setActiveFilters] = useState(new Set());
   const [addedId, setAddedId] = useState(null);
-  const { items, addItem, count, total } = useCartStore();
+  const addItem = useCartStore(s => s.addItem);
+  const count = useCartStore(s => s.count);
+  const total = useCartStore(s => s.total);
 
   const { data: restaurant } = useQuery({ queryKey: ['restaurant', slug], queryFn: () => restaurantApi.get(slug) });
   const { data: menu = [], isLoading } = useQuery({ queryKey: ['menu', slug], queryFn: () => menuApi.getPublic(slug) });
@@ -104,7 +106,7 @@ export default function CustomerMenu() {
 
         {/* Debug info */}
         <div style={{ position: 'fixed', top: 10, right: 10, background: '#333', color: '#fff', padding: 10, borderRadius: 4, fontSize: 12, zIndex: 9999 }}>
-          Cart: {count} items, ₹{total.toFixed(2)}
+          Cart: {count} items, ₹{total?.toFixed(2) || '0.00'}
         </div>
 
         {/* Cart bar */}
