@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { menuApi } from '../../api/queries.js';
 
-const EMPTY = { name: '', category: '', description: '', price: '', tags: '', allergens: '', is_available: true };
+const EMPTY = { name: '', category: '', description: '', price: '', tags: '', allergens: '', image_url: '', video_url: '', is_available: true };
 
 export default function MenuManager() {
   const { slug } = useParams();
@@ -39,7 +39,13 @@ export default function MenuManager() {
 
   const openEdit = (item) => {
     setEditing(item.id);
-    setForm({ ...item, tags: item.tags?.join(', ') || '', allergens: item.allergens?.join(', ') || '' });
+    setForm({ 
+      ...item, 
+      tags: item.tags?.join(', ') || '', 
+      allergens: item.allergens?.join(', ') || '',
+      image_url: item.image_url || '',
+      video_url: item.video_url || ''
+    });
     setShowForm(true);
   };
 
@@ -47,6 +53,8 @@ export default function MenuManager() {
     ...form, price: parseFloat(form.price),
     tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
     allergens: form.allergens ? form.allergens.split(',').map(t => t.trim()).filter(Boolean) : [],
+    image_url: form.image_url || null,
+    video_url: form.video_url || null,
   });
 
   const handleSubmit = (e) => {
@@ -90,6 +98,18 @@ export default function MenuManager() {
             <div>
               <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Allergens (comma-separated)</label>
               <input style={S.input} value={form.allergens || ''} onChange={e => setForm(p => ({ ...p, allergens: e.target.value }))} placeholder="dairy, nuts, gluten" />
+            </div>
+            <div style={{ gridColumn: '1/-1' }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Photo URL</label>
+              <input style={S.input} value={form.image_url || ''} onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} placeholder="https://example.com/photo.jpg" />
+              {form.image_url && <img src={form.image_url} alt="Preview" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8, marginTop: 8 }} onError={e => e.target.style.display = 'none'} />}
+            </div>
+            <div style={{ gridColumn: '1/-1' }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Video URL (10 sec max)</label>
+              <input style={S.input} value={form.video_url || ''} onChange={e => setForm(p => ({ ...p, video_url: e.target.value }))} placeholder="https://example.com/video.mp4" />
+              {form.video_url && (
+                <video src={form.video_url} style={{ width: 200, height: 150, borderRadius: 8, marginTop: 8 }} controls muted loop onError={e => e.target.style.display = 'none'} />
+              )}
             </div>
             <div style={{ gridColumn: '1/-1', display: 'flex', gap: 10, marginTop: 4 }}>
               <button type="submit" disabled={createMutation.isPending || updateMutation.isPending}
