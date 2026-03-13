@@ -8,6 +8,18 @@ const C = { bg:'#0C0A07', card:'#161310', gold:'#C8A84B', cream:'#F2E8D0', muted
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Crimson+Text:wght@400;600&display=swap');`;
 const TAG_COLORS = { vegan:'100,200,120', vegetarian:'120,200,100', 'gluten-free':'200,180,100', spicy:'220,80,60', 'nut-free':'100,160,220' };
 
+function VideoModal({ videoUrl, onClose }) {
+  if (!videoUrl) return null;
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }} onClick={onClose}>
+      <div style={{ position: 'relative', maxWidth: 600, width: '100%' }} onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} style={{ position: 'absolute', top: -40, right: 0, background: 'transparent', border: 'none', color: '#fff', fontSize: 24, cursor: 'pointer' }}>✕</button>
+        <video src={videoUrl} style={{ width: '100%', borderRadius: 8 }} controls autoPlay muted loop />
+      </div>
+    </div>
+  );
+}
+
 export default function CustomerMenu() {
   const { slug } = useParams();
   const [searchParams] = useSearchParams();
@@ -16,6 +28,7 @@ export default function CustomerMenu() {
   const [category, setCategory] = useState('All');
   const [activeFilters, setActiveFilters] = useState(new Set());
   const [addedId, setAddedId] = useState(null);
+  const [playingVideo, setPlayingVideo] = useState(null);
   const addItem = useCartStore(s => s.addItem);
   const items = useCartStore(s => s.items);
   const count = items.reduce((s, i) => s + i.qty, 0);
@@ -88,7 +101,7 @@ export default function CustomerMenu() {
                 )}
                 {item.video_url && (
                   <button 
-                    onClick={() => window.open(item.video_url, '_blank')}
+                    onClick={() => setPlayingVideo(item.video_url)}
                     style={{ position: 'absolute', bottom: 8, right: 8, background: '#C8A84B', color: '#0C0A07', border: 'none', borderRadius: '50%', width: 32, height: 32, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     title="Watch video"
                   >
@@ -127,6 +140,9 @@ export default function CustomerMenu() {
             </button>
           </div>
         )}
+
+        {/* Video Modal */}
+        <VideoModal videoUrl={playingVideo} onClose={() => setPlayingVideo(null)} />
       </div>
     </>
   );
