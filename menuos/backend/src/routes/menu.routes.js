@@ -12,11 +12,11 @@ router.use(tenantResolver);
 // Public
 router.get('/', getMenu);
 
-// Admin/Staff only
-router.get('/all', authenticate, requireTenantAccess, authorizeRole('admin', 'staff'), getAllMenuItems);
-router.post('/', authenticate, requireTenantAccess, authorizeRole('admin'), checkMenuItemLimit, createMenuItem);
-router.put('/:itemId', authenticate, requireTenantAccess, authorizeRole('admin'), updateMenuItem);
-router.delete('/:itemId', authenticate, requireTenantAccess, authorizeRole('admin'), deleteMenuItem);
-router.patch('/:itemId/toggle', authenticate, requireTenantAccess, authorizeRole('admin', 'staff'), toggleAvailability);
+// Admin/Staff only (platform_admin can also access)
+router.get('/all', authenticate, requireTenantAccess, authorizeRole('admin', 'staff', 'platform_admin'), getAllMenuItems);
+router.post('/', authenticate, requireTenantAccess, authorizeRole('admin', 'platform_admin'), checkMenuItemLimit, createMenuItem);
+router.put('/:itemId', authenticate, requireTenantAccess, authorizeRole('admin', 'platform_admin'), updateMenuItem);
+router.delete('/:itemId', authenticate, requireTenantAccess, authorizeRole('admin', 'platform_admin'), deleteMenuItem);
+router.patch('/:itemId/toggle', authenticate, requireTenantAccess, authorizeRole('admin', 'staff', 'platform_admin'), toggleAvailability);
 
 export default router;

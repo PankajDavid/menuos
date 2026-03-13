@@ -6,7 +6,7 @@ import { tenantResolver, requireTenantAccess } from '../middleware/tenantResolve
 const router = Router();
 
 router.get('/:slug', tenantResolver, getRestaurant);
-router.put('/:slug', tenantResolver, authenticate, requireTenantAccess, authorizeRole('admin'), updateRestaurant);
-router.get('/:slug/analytics', tenantResolver, authenticate, requireTenantAccess, authorizeRole('admin'), getAnalytics);
+router.put('/:slug', tenantResolver, authenticate, requireTenantAccess, authorizeRole('admin', 'platform_admin'), updateRestaurant);
+router.get('/:slug/analytics', tenantResolver, authenticate, requireTenantAccess, authorizeRole('admin', 'platform_admin'), getAnalytics);
 
 export default router;

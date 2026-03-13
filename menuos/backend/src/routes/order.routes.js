@@ -10,7 +10,7 @@ router.use(tenantResolver);
 
 router.post('/payment', initiatePayment);
 router.post('/', checkOrderLimit, createOrder);
-router.get('/', authenticate, requireTenantAccess, authorizeRole('admin', 'staff', 'kitchen'), getOrders);
-router.patch('/:orderId/status', authenticate, requireTenantAccess, authorizeRole('admin', 'staff', 'kitchen'), updateOrderStatus);
+router.get('/', authenticate, requireTenantAccess, authorizeRole('admin', 'staff', 'kitchen', 'platform_admin'), getOrders);
+router.patch('/:orderId/status', authenticate, requireTenantAccess, authorizeRole('admin', 'staff', 'kitchen', 'platform_admin'), updateOrderStatus);
 
 export default router;
