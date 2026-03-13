@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { restaurantApi } from '../../api/queries.js';
+import { restaurantApi, billingApi } from '../../api/queries.js';
 
 function QRCodeDisplay({ url, restaurantName }) {
   const [qrDataUrl, setQrDataUrl] = useState('');
@@ -104,6 +104,105 @@ function StatCard({ icon, label, value, color = '#2563EB' }) {
   );
 }
 
+function SubscriptionCard({ subscription }) {
+  const PLAN_COLORS = { free: '#64748b', basic: '#2563EB', pro: '#C8A84B', premium: '#7C3AED' };
+  
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'active': return { bg: '#dcfce7', text: '#16A34A' };
+      case 'grace_period': return { bg: '#fef3c7', text: '#92400e' };
+      case 'suspended': return { bg: '#fee2e2', text: '#dc2626' };
+      default: return { bg: '#f3f4f6', text: '#374151' };
+    }
+  };
+
+  const statusColors = getStatusColor(subscription?.subscription_status);
+  const isExpiringSoon = subscription?.next_payment_date && 
+    new Date(subscription.next_payment_date) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+  return (
+    <div style={{ background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 24, border: isExpiringSoon ? '2px solid #ef4444' : 'none' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+        <div>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', marginBottom: 4 }}>📋 Subscription</h2>
+          <p style={{ color: '#64748b', fontSize: 14 }}>Manage your plan and billing</p>
+        </div>
+        <span style={{ 
+          padding: '6px 12px', 
+          borderRadius: 20, 
+          fontSize: 12, 
+          fontWeight: 600, 
+          background: statusColors.bg, 
+          color: statusColors.text,
+          textTransform: 'capitalize'
+        }}>
+          {subscription?.subscription_status || 'Active'}
+        </span>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16, marginBottom: 20 }}>
+        <div>
+          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Current Plan</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: PLAN_COLORS[subscription?.subscription_plan] || '#64748b', textTransform: 'capitalize' }}>
+            {subscription?.subscription_plan || 'Free'}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Next Payment</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: isExpiringSoon ? '#ef4444' : '#1e293b' }}>
+            {subscription?.next_payment_date ? new Date(subscription.next_payment_date).toLocaleDateString() : 'N/A'}
+            {isExpiringSoon && <span style={{ color: '#ef4444', fontSize: 12, marginLeft: 8 }}>⚠️ Expiring Soon</span>}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Monthly Fee</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#1e293b' }}>
+            ₹{parseFloat(subscription?.platform_fee_amount || 0).toFixed(0)}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Payment Status</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: subscription?.payment_status === 'paid' ? '#16A34A' : subscription?.payment_status === 'overdue' ? '#dc2626' : '#92400e', textTransform: 'capitalize' }}>
+            {subscription?.payment_status || 'Pending'}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 12 }}>
+        <Link 
+          to="subscription"
+          style={{ 
+            padding: '10px 20px', 
+            background: '#C8A84B', 
+            color: '#fff', 
+            borderRadius: 8, 
+            fontSize: 14, 
+            fontWeight: 600, 
+            textDecoration: 'none',
+            display: 'inline-block'
+          }}
+        >
+          {subscription?.subscription_status === 'suspended' ? 'Reactivate' : 'Renew / Upgrade'}
+        </Link>
+        <Link 
+          to="invoices"
+          style={{ 
+            padding: '10px 20px', 
+            background: '#f1f5f9', 
+            color: '#374151', 
+            borderRadius: 8, 
+            fontSize: 14, 
+            textDecoration: 'none',
+            display: 'inline-block'
+          }}
+        >
+          View Invoices
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const { slug } = useParams();
   const { data: analytics, isLoading } = useQuery({
@@ -111,14 +210,30 @@ export default function AdminDashboard() {
     queryFn: () => restaurantApi.getAnalytics(slug),
     refetchInterval: 60000,
   });
+  const { data: invoices } = useQuery({
+    queryKey: ['invoices', slug],
+    queryFn: () => billingApi.getInvoices(slug),
+  });
 
   // Use frontend URL for QR code
   const menuUrl = `https://soothing-embrace-production.up.railway.app/r/${slug}/menu`;
+
+  // Get subscription info from invoices or use defaults
+  const subscription = invoices?.[0] ? {
+    subscription_plan: invoices[0].plan,
+    subscription_status: 'active',
+    next_payment_date: invoices[0].due_date,
+    platform_fee_amount: invoices[0].final_amount,
+    payment_status: invoices[0].status
+  } : null;
 
   return (
     <div style={{ padding: 32 }}>
       <h1 style={{ fontSize: 26, fontWeight: 700, color: '#1e293b', marginBottom: 6 }}>Dashboard</h1>
       <p style={{ color: '#64748b', marginBottom: 28 }}>Today's snapshot for your restaurant</p>
+
+      {/* Subscription Card */}
+      <SubscriptionCard subscription={subscription} />
 
       {isLoading ? (
         <div style={{ color: '#94a3b8' }}>Loading analytics…</div>

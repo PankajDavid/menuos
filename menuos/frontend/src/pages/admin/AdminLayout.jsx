@@ -8,6 +8,8 @@ const NAV = [
   { to: 'tables', label: '🪑 Tables & QR' },
   { to: 'staff', label: '👥 Staff' },
   { to: 'settings', label: '⚙️ Settings' },
+  { to: 'subscription', label: '📋 Subscription' },
+  { to: 'invoices', label: '🧾 Invoices' },
 ];
 
 export default function AdminLayout() {
