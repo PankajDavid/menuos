@@ -91,6 +91,7 @@ export async function login(req, res, next) {
     await query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [user.id]);
 
     const tokenPayload = { userId: user.id, restaurantId: user.restaurant_id, role: user.role };
+    console.log('Login - User role from DB:', user.role, 'Token payload:', tokenPayload);
     const accessToken = signAccess(tokenPayload);
     const refreshToken = signRefresh({ userId: user.id });
 
