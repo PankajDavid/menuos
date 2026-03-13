@@ -57,6 +57,12 @@ export const platformApi = {
   // Feature Flags
   getFeatureFlags: () => api.get('/api/platform/feature-flags').then(r => r.data),
   updateFeatureFlag: (key, data) => api.patch(`/api/platform/feature-flags/${key}`, data).then(r => r.data),
+  // Email Templates
+  getEmailTemplates: () => api.get('/api/platform/email-templates').then(r => r.data),
+  getEmailTemplate: (key) => api.get(`/api/platform/email-templates/${key}`).then(r => r.data),
+  updateEmailTemplate: (key, data) => api.patch(`/api/platform/email-templates/${key}`, data).then(r => r.data),
+  previewEmailTemplate: (key, variables) => api.post(`/api/platform/email-templates/${key}/preview`, { variables }).then(r => r.data),
+  sendTestEmail: (key, to, variables) => api.post(`/api/platform/email-templates/${key}/send-test`, { to, variables }).then(r => r.data),
 };
 
 export const billingApi = {

@@ -6,6 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import PlanLimits from './PlanLimits.jsx';
 import FeatureFlags from './FeatureFlags.jsx';
 import Geography from './Geography.jsx';
+import EmailTemplates from './EmailTemplates.jsx';
 
 const PLAN_COLORS = { free: '#64748b', basic: '#2563EB', pro: '#C8A84B', premium: '#7C3AED' };
 
@@ -19,6 +20,7 @@ export default function PlatformAdmin() {
   const [showPlanLimits, setShowPlanLimits] = useState(false);
   const [showFeatureFlags, setShowFeatureFlags] = useState(false);
   const [showGeography, setShowGeography] = useState(false);
+  const [showEmailTemplates, setShowEmailTemplates] = useState(false);
 
   const { data: analytics } = useQuery({ queryKey: ['platform-analytics'], queryFn: platformApi.getAnalytics });
   const { data: restaurants = [] } = useQuery({ queryKey: ['platform-restaurants'], queryFn: platformApi.getRestaurants });
@@ -105,6 +107,7 @@ export default function PlatformAdmin() {
           <button onClick={() => setShowPlanLimits(!showPlanLimits)} style={{ background: '#7C3AED', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>⚙️ Plan Limits</button>
           <button onClick={() => setShowFeatureFlags(!showFeatureFlags)} style={{ background: '#0891b2', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>🚦 Feature Flags</button>
           <button onClick={() => setShowGeography(!showGeography)} style={{ background: '#059669', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>🌍 Geography</button>
+          <button onClick={() => setShowEmailTemplates(!showEmailTemplates)} style={{ background: '#ea580c', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>📧 Email Templates</button>
           <Link to="/r/pankys/admin" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 14, padding: '7px 16px', border: '1px solid #334155', borderRadius: 8 }}>🏪 My Restaurant</Link>
           <button onClick={handleLogout} style={{ background: 'transparent', border: '1px solid #334155', color: '#94a3b8', padding: '7px 16px', borderRadius: 8, cursor: 'pointer' }}>Logout</button>
         </div>
@@ -770,6 +773,9 @@ export default function PlatformAdmin() {
       )}
       {showGeography && (
         <Geography onClose={() => setShowGeography(false)} />
+      )}
+      {showEmailTemplates && (
+        <EmailTemplates onClose={() => setShowEmailTemplates(false)} />
       )}
     </div>
   );

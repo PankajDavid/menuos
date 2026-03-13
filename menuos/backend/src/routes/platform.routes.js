@@ -4,6 +4,7 @@ import { getAllRestaurants, getPlatformAnalytics, updatePlan, toggleRestaurant, 
 import { getActivityLogs, getActivitySummary } from '../controllers/activity.controller.js';
 import { getPlanLimits, updatePlanLimits } from '../controllers/planLimits.controller.js';
 import { getFeatureFlags, updateFeatureFlag } from '../controllers/featureFlags.controller.js';
+import { getEmailTemplates, getEmailTemplate, updateEmailTemplate, previewEmailTemplate, sendTestEmail } from '../controllers/emailTemplates.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 
 const router = Router();
@@ -22,6 +23,11 @@ router.get('/popular-items', getPopularItems);
 router.get('/geography', getGeographicDistribution);
 router.get('/feature-flags', getFeatureFlags);
 router.patch('/feature-flags/:key', updateFeatureFlag);
+router.get('/email-templates', getEmailTemplates);
+router.get('/email-templates/:key', getEmailTemplate);
+router.patch('/email-templates/:key', updateEmailTemplate);
+router.post('/email-templates/:key/preview', previewEmailTemplate);
+router.post('/email-templates/:key/send-test', sendTestEmail);
 router.patch('/restaurants/:id/plan', updatePlan);
 router.patch('/restaurants/:id/toggle', toggleRestaurant);
 router.patch('/users/:id/role', updateUserRole);

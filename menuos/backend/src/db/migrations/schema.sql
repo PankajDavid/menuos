@@ -320,6 +320,49 @@ VALUES
   ('white_label', 'White Label', 'Enable white-label branding', FALSE, ARRAY['premium'])
 ON CONFLICT (key) DO NOTHING;
 
+-- ── EMAIL TEMPLATES ───────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS email_templates (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  key                   VARCHAR(100) UNIQUE NOT NULL,
+  name                  VARCHAR(255) NOT NULL,
+  subject               VARCHAR(500) NOT NULL,
+  body_html             TEXT NOT NULL,
+  body_text             TEXT,
+  variables             JSONB DEFAULT '[]',
+  is_active             BOOLEAN DEFAULT TRUE,
+  created_at            TIMESTAMPTZ DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Insert default email templates
+INSERT INTO email_templates (key, name, subject, body_html, body_text, variables)
+VALUES 
+  ('welcome', 'Welcome Email', 'Welcome to {{restaurantName}}!', 
+   '<h1>Welcome {{userName}}!</h1><p>Thank you for joining {{restaurantName}}. We''re excited to have you!</p><p>Your account is now active and ready to use.</p>',
+   'Welcome {{userName}}! Thank you for joining {{restaurantName}}. Your account is now active.',
+   '["userName", "restaurantName"]'),
+   
+  ('order_confirmation', 'Order Confirmation', 'Order #{{orderId}} Confirmed',
+   '<h1>Order Confirmed</h1><p>Hi {{customerName}},</p><p>Your order #{{orderId}} has been received and is being prepared.</p><p>Total: ₹{{total}}</p>',
+   'Hi {{customerName}}, Your order #{{orderId}} has been received. Total: ₹{{total}}',
+   '["customerName", "orderId", "total"]'),
+   
+  ('password_reset', 'Password Reset', 'Reset Your Password',
+   '<h1>Password Reset Request</h1><p>Hi {{userName}},</p><p>Click the link below to reset your password:</p><p><a href="{{resetUrl}}">Reset Password</a></p><p>This link expires in 1 hour.</p>',
+   'Hi {{userName}}, Reset your password: {{resetUrl}} (expires in 1 hour)',
+   '["userName", "resetUrl"]'),
+   
+  ('subscription_expiring', 'Subscription Expiring', 'Your Subscription Expires Soon',
+   '<h1>Subscription Expiring</h1><p>Hi {{userName}},</p><p>Your {{plan}} plan expires on {{expiryDate}}.</p><p><a href="{{renewUrl}}">Renew Now</a></p>',
+   'Hi {{userName}}, Your {{plan}} plan expires on {{expiryDate}}. Renew: {{renewUrl}}',
+   '["userName", "plan", "expiryDate", "renewUrl"]'),
+   
+  ('new_staff_invite', 'Staff Invitation', 'You''ve Been Invited to {{restaurantName}}',
+   '<h1>Welcome to the Team!</h1><p>Hi {{userName}},</p><p>You''ve been invited to join {{restaurantName}} as {{role}}.</p><p><a href="{{inviteUrl}}">Accept Invitation</a></p>',
+   'Hi {{userName}}, You''ve been invited to join {{restaurantName}} as {{role}}. Accept: {{inviteUrl}}',
+   '["userName", "restaurantName", "role", "inviteUrl"]')
+ON CONFLICT (key) DO NOTHING;
+
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
 INSERT INTO users (restaurant_id, name, email, password_hash, role)
