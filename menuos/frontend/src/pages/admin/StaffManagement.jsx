@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../../api/axios.js';
+import api from '../../api/axios.js';
 
 const ROLES = [
   { value: 'admin', label: 'Admin', description: 'Full access to all features' },
