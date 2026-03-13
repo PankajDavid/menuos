@@ -132,3 +132,59 @@ export async function getAllUsers(req, res, next) {
     res.json(result.rows);
   } catch (err) { next(err); }
 }
+
+// GET /api/platform/export/restaurants - Export restaurants to CSV
+export async function exportRestaurants(req, res, next) {
+  try {
+    const result = await query(`
+      SELECT r.id, r.name, r.slug, r.owner_email, r.phone, r.subscription_plan, 
+             r.subscription_status, r.payment_status, r.is_active, r.created_at,
+             r.last_payment_date, r.next_payment_date, r.grace_period_end_date,
+             (SELECT COUNT(*) FROM orders o WHERE o.restaurant_id = r.id) as total_orders,
+             (SELECT COALESCE(SUM(total_amount),0) FROM orders o WHERE o.restaurant_id = r.id AND payment_status = 'paid') as total_revenue,
+             (SELECT COUNT(*) FROM menu_items m WHERE m.restaurant_id = r.id) as menu_items_count
+      FROM restaurants r
+      ORDER BY r.created_at DESC
+    `);
+
+    // Convert to CSV
+    const headers = ['ID', 'Name', 'Slug', 'Owner Email', 'Phone', 'Plan', 'Status', 'Payment Status', 'Active', 'Created At', 'Last Payment', 'Next Payment', 'Grace Period End', 'Total Orders', 'Total Revenue', 'Menu Items'];
+    const rows = result.rows.map(r => [
+      r.id, r.name, r.slug, r.owner_email, r.phone || '', r.subscription_plan,
+      r.subscription_status || 'active', r.payment_status || 'pending', r.is_active,
+      new Date(r.created_at).toISOString(), r.last_payment_date || '', r.next_payment_date || '',
+      r.grace_period_end_date || '', r.total_orders, r.total_revenue, r.menu_items_count
+    ]);
+
+    const csv = [headers.join(','), ...rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=restaurants.csv');
+    res.send(csv);
+  } catch (err) { next(err); }
+}
+
+// GET /api/platform/export/orders - Export orders to CSV
+export async function exportOrders(req, res, next) {
+  try {
+    const result = await query(`
+      SELECT o.id, o.restaurant_id, r.name as restaurant_name, o.table_number, 
+             o.total_amount, o.payment_status, o.status, o.created_at
+      FROM orders o
+      JOIN restaurants r ON o.restaurant_id = r.id
+      ORDER BY o.created_at DESC
+      LIMIT 10000
+    `);
+
+    const headers = ['ID', 'Restaurant', 'Table Number', 'Total Amount', 'Payment Status', 'Order Status', 'Created At'];
+    const rows = result.rows.map(o => [
+      o.id, o.restaurant_name, o.table_number, o.total_amount, o.payment_status, o.status, new Date(o.created_at).toISOString()
+    ]);
+
+    const csv = [headers.join(','), ...rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=orders.csv');
+    res.send(csv);
+  } catch (err) { next(err); }
+}

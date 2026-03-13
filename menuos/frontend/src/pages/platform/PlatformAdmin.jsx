@@ -43,6 +43,28 @@ export default function PlatformAdmin() {
     onSuccess: () => qc.invalidateQueries(['platform-restaurants', 'platform-analytics']),
   });
 
+  const handleExport = async (type) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/platform/export/${type}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${type}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Export failed. Please try again.');
+    }
+  };
+
   const handleLogout = async () => { await logout(); navigate('/login'); };
 
   return (
@@ -51,6 +73,8 @@ export default function PlatformAdmin() {
       <div style={{ background: '#1e293b', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155' }}>
         <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, color: '#C8A84B' }}>🍽 MenuOS — Platform Admin</div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <button onClick={() => handleExport('restaurants')} style={{ background: '#16A34A', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>📥 Export Restaurants</button>
+          <button onClick={() => handleExport('orders')} style={{ background: '#2563EB', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>📥 Export Orders</button>
           <Link to="/r/pankys/admin" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 14, padding: '7px 16px', border: '1px solid #334155', borderRadius: 8 }}>🏪 My Restaurant</Link>
           <button onClick={handleLogout} style={{ background: 'transparent', border: '1px solid #334155', color: '#94a3b8', padding: '7px 16px', borderRadius: 8, cursor: 'pointer' }}>Logout</button>
         </div>
