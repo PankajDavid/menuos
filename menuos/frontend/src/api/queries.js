@@ -85,6 +85,10 @@ export const platformApi = {
   convertTrial: (id, plan) => api.post(`/api/platform/trials/${id}/convert`, { plan }).then(r => r.data),
   extendTrial: (id, days) => api.post(`/api/platform/trials/${id}/extend`, { days }).then(r => r.data),
   getTrialEngagement: (id) => api.get(`/api/platform/trials/${id}/engagement`).then(r => r.data),
+  // Revenue Analytics (Platform Admin)
+  getRevenueAnalytics: (period) => api.get('/api/platform/revenue/analytics', { params: { period } }).then(r => r.data),
+  getMrrHistory: (months) => api.get('/api/platform/revenue/mrr-history', { params: { months } }).then(r => r.data),
+  getUpgradeAnalysis: (period) => api.get('/api/platform/revenue/upgrades', { params: { period } }).then(r => r.data),
 };
 
 export const billingApi = {

@@ -11,6 +11,7 @@ import Announcements from './Announcements.jsx';
 import SupportTickets from './SupportTickets.jsx';
 import Onboarding from './Onboarding.jsx';
 import TrialManagement from './TrialManagement.jsx';
+import RevenueAnalytics from './RevenueAnalytics.jsx';
 
 const PLAN_COLORS = { free: '#64748b', basic: '#2563EB', pro: '#C8A84B', premium: '#7C3AED' };
 
@@ -29,6 +30,7 @@ export default function PlatformAdmin() {
   const [showSupportTickets, setShowSupportTickets] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTrialManagement, setShowTrialManagement] = useState(false);
+  const [showRevenueAnalytics, setShowRevenueAnalytics] = useState(false);
 
   const { data: analytics } = useQuery({ queryKey: ['platform-analytics'], queryFn: platformApi.getAnalytics });
   const { data: restaurants = [] } = useQuery({ queryKey: ['platform-restaurants'], queryFn: platformApi.getRestaurants });
@@ -120,6 +122,7 @@ export default function PlatformAdmin() {
           <button onClick={() => setShowSupportTickets(!showSupportTickets)} style={{ background: '#db2777', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>🎫 Support Tickets</button>
           <button onClick={() => setShowOnboarding(!showOnboarding)} style={{ background: '#0891b2', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>✅ Onboarding</button>
           <button onClick={() => setShowTrialManagement(!showTrialManagement)} style={{ background: '#059669', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>🎯 Trials</button>
+          <button onClick={() => setShowRevenueAnalytics(!showRevenueAnalytics)} style={{ background: '#d97706', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>💰 Revenue</button>
           <Link to="/r/pankys/admin" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 14, padding: '7px 16px', border: '1px solid #334155', borderRadius: 8 }}>🏪 My Restaurant</Link>
           <button onClick={handleLogout} style={{ background: 'transparent', border: '1px solid #334155', color: '#94a3b8', padding: '7px 16px', borderRadius: 8, cursor: 'pointer' }}>Logout</button>
         </div>
@@ -800,6 +803,9 @@ export default function PlatformAdmin() {
       )}
       {showTrialManagement && (
         <TrialManagement onClose={() => setShowTrialManagement(false)} />
+      )}
+      {showRevenueAnalytics && (
+        <RevenueAnalytics onClose={() => setShowRevenueAnalytics(false)} />
       )}
     </div>
   );

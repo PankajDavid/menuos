@@ -9,6 +9,7 @@ import { getAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnounc
 import { getSupportTickets, updateTicket, getTicketStats } from '../controllers/supportTickets.controller.js';
 import { getOnboardingItems, createOnboardingItem, updateOnboardingItem, deleteOnboardingItem, getOnboardingOverview } from '../controllers/onboarding.controller.js';
 import { getTrials, getTrialStats, startTrial, convertTrial, extendTrial, getTrialEngagement } from '../controllers/trialManagement.controller.js';
+import { getRevenueAnalytics, getMrrHistory, getUpgradeAnalysis, recordRevenueEvent, createMrrSnapshot } from '../controllers/revenueAnalytics.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 
 const router = Router();
@@ -50,6 +51,11 @@ router.post('/trials', startTrial);
 router.post('/trials/:id/convert', convertTrial);
 router.post('/trials/:id/extend', extendTrial);
 router.get('/trials/:id/engagement', getTrialEngagement);
+router.get('/revenue/analytics', getRevenueAnalytics);
+router.get('/revenue/mrr-history', getMrrHistory);
+router.get('/revenue/upgrades', getUpgradeAnalysis);
+router.post('/revenue/events', recordRevenueEvent);
+router.post('/revenue/snapshot', createMrrSnapshot);
 router.patch('/restaurants/:id/plan', updatePlan);
 router.patch('/restaurants/:id/toggle', toggleRestaurant);
 router.patch('/users/:id/role', updateUserRole);

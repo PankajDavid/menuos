@@ -490,6 +490,41 @@ CREATE INDEX IF NOT EXISTS idx_trial_conversions_expires ON trial_conversions(ex
 CREATE INDEX IF NOT EXISTS idx_trial_engagement_restaurant ON trial_engagement(restaurant_id);
 CREATE INDEX IF NOT EXISTS idx_trial_engagement_event ON trial_engagement(event_type);
 
+-- ── REVENUE ANALYTICS ─────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS revenue_events (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  restaurant_id         UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+  event_type            VARCHAR(50) NOT NULL, -- subscription_started, subscription_upgraded, subscription_downgraded, subscription_cancelled, payment_succeeded, payment_failed
+  previous_plan         subscription_plan,
+  new_plan              subscription_plan,
+  amount                DECIMAL(10,2),
+  currency              VARCHAR(3) DEFAULT 'INR',
+  event_date            DATE DEFAULT CURRENT_DATE,
+  metadata              JSONB,
+  created_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- MRR snapshots (monthly recurring revenue)
+CREATE TABLE IF NOT EXISTS mrr_snapshots (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  snapshot_date         DATE NOT NULL,
+  total_mrr             DECIMAL(12,2) DEFAULT 0,
+  total_customers       INTEGER DEFAULT 0,
+  new_customers         INTEGER DEFAULT 0,
+  churned_customers     INTEGER DEFAULT 0,
+  upgrades              INTEGER DEFAULT 0,
+  downgrades            INTEGER DEFAULT 0,
+  by_plan               JSONB DEFAULT '{}',
+  created_at            TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(snapshot_date)
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_revenue_events_restaurant ON revenue_events(restaurant_id);
+CREATE INDEX IF NOT EXISTS idx_revenue_events_type ON revenue_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_revenue_events_date ON revenue_events(event_date);
+CREATE INDEX IF NOT EXISTS idx_mrr_snapshots_date ON mrr_snapshots(snapshot_date);
+
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
 INSERT INTO users (restaurant_id, name, email, password_hash, role)
