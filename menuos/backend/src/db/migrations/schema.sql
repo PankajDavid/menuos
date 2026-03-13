@@ -417,6 +417,48 @@ CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets(status)
 CREATE INDEX IF NOT EXISTS idx_support_tickets_user ON support_tickets(user_id);
 CREATE INDEX IF NOT EXISTS idx_support_messages_ticket ON support_messages(ticket_id);
 
+-- ── ONBOARDING CHECKLIST ──────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS onboarding_checklist_items (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  key                   VARCHAR(100) UNIQUE NOT NULL,
+  title                 VARCHAR(255) NOT NULL,
+  description           TEXT,
+  category              VARCHAR(50) DEFAULT 'setup', -- setup, menu, staff, launch
+  order_index           INTEGER DEFAULT 0,
+  is_required           BOOLEAN DEFAULT TRUE,
+  is_active             BOOLEAN DEFAULT TRUE,
+  created_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Restaurant onboarding progress
+CREATE TABLE IF NOT EXISTS restaurant_onboarding (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  restaurant_id         UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+  checklist_item_id     UUID REFERENCES onboarding_checklist_items(id) ON DELETE CASCADE,
+  is_completed          BOOLEAN DEFAULT FALSE,
+  completed_at          TIMESTAMPTZ,
+  completed_by          UUID REFERENCES users(id),
+  notes                 TEXT,
+  created_at            TIMESTAMPTZ DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(restaurant_id, checklist_item_id)
+);
+
+-- Insert default onboarding items
+INSERT INTO onboarding_checklist_items (key, title, description, category, order_index, is_required)
+VALUES 
+  ('restaurant_profile', 'Complete Restaurant Profile', 'Add restaurant name, address, contact info, and logo', 'setup', 1, TRUE),
+  ('upload_logo', 'Upload Restaurant Logo', 'Upload your restaurant logo for branding', 'setup', 2, FALSE),
+  ('add_menu_categories', 'Create Menu Categories', 'Set up categories like Starters, Main Course, Desserts', 'menu', 3, TRUE),
+  ('add_menu_items', 'Add Menu Items', 'Add at least 5 items to your menu with photos', 'menu', 4, TRUE),
+  ('set_pricing', 'Configure Pricing', 'Set prices for all menu items', 'menu', 5, TRUE),
+  ('add_tables', 'Set Up Tables', 'Create table numbers for QR code ordering', 'setup', 6, TRUE),
+  ('generate_qr_codes', 'Generate QR Codes', 'Generate and print QR codes for tables', 'launch', 7, TRUE),
+  ('add_staff', 'Add Staff Members', 'Invite kitchen staff and waiters', 'staff', 8, FALSE),
+  ('test_order', 'Place Test Order', 'Test the complete ordering flow', 'launch', 9, TRUE),
+  ('go_live', 'Go Live!', 'Enable your restaurant for customers', 'launch', 10, TRUE)
+ON CONFLICT (key) DO NOTHING;
+
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
 INSERT INTO users (restaurant_id, name, email, password_hash, role)

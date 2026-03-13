@@ -3,6 +3,7 @@ import { getRestaurant, updateRestaurant, getAnalytics } from '../controllers/re
 import { getStaff, createStaff, toggleStaffStatus } from '../controllers/staff.controller.js';
 import { getRestaurantLimits, checkLimit } from '../controllers/planLimits.controller.js';
 import { getRestaurantFeatures, checkFeature } from '../controllers/featureFlags.controller.js';
+import { getRestaurantOnboarding, completeOnboardingItem, uncompleteOnboardingItem } from '../controllers/onboarding.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 import { tenantResolver, requireTenantAccess } from '../middleware/tenantResolver.js';
 
@@ -24,5 +25,10 @@ router.get('/:slug/limits/:resource', tenantResolver, authenticate, requireTenan
 // Feature flags routes
 router.get('/:slug/features', tenantResolver, authenticate, requireTenantAccess, getRestaurantFeatures);
 router.get('/:slug/features/:featureKey', tenantResolver, authenticate, requireTenantAccess, checkFeature);
+
+// Onboarding routes
+router.get('/:slug/onboarding', tenantResolver, authenticate, requireTenantAccess, getRestaurantOnboarding);
+router.post('/:slug/onboarding/:itemId/complete', tenantResolver, authenticate, requireTenantAccess, completeOnboardingItem);
+router.post('/:slug/onboarding/:itemId/uncomplete', tenantResolver, authenticate, requireTenantAccess, uncompleteOnboardingItem);
 
 export default router;

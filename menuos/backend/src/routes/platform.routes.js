@@ -7,6 +7,7 @@ import { getFeatureFlags, updateFeatureFlag } from '../controllers/featureFlags.
 import { getEmailTemplates, getEmailTemplate, updateEmailTemplate, previewEmailTemplate, sendTestEmail } from '../controllers/emailTemplates.controller.js';
 import { getAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement } from '../controllers/announcements.controller.js';
 import { getSupportTickets, updateTicket, getTicketStats } from '../controllers/supportTickets.controller.js';
+import { getOnboardingItems, createOnboardingItem, updateOnboardingItem, deleteOnboardingItem, getOnboardingOverview } from '../controllers/onboarding.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 
 const router = Router();
@@ -37,6 +38,11 @@ router.delete('/announcements/:id', deleteAnnouncement);
 router.get('/support-tickets', getSupportTickets);
 router.get('/support-tickets/stats', getTicketStats);
 router.patch('/support-tickets/:id', updateTicket);
+router.get('/onboarding-items', getOnboardingItems);
+router.post('/onboarding-items', createOnboardingItem);
+router.patch('/onboarding-items/:id', updateOnboardingItem);
+router.delete('/onboarding-items/:id', deleteOnboardingItem);
+router.get('/onboarding/overview', getOnboardingOverview);
 router.patch('/restaurants/:id/plan', updatePlan);
 router.patch('/restaurants/:id/toggle', toggleRestaurant);
 router.patch('/users/:id/role', updateUserRole);

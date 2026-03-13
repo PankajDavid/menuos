@@ -72,6 +72,12 @@ export const platformApi = {
   getSupportTickets: (params) => api.get('/api/platform/support-tickets', { params }).then(r => r.data),
   getTicketStats: () => api.get('/api/platform/support-tickets/stats').then(r => r.data),
   updateTicket: (id, data) => api.patch(`/api/platform/support-tickets/${id}`, data).then(r => r.data),
+  // Onboarding (Platform Admin)
+  getOnboardingItems: () => api.get('/api/platform/onboarding-items').then(r => r.data),
+  createOnboardingItem: (data) => api.post('/api/platform/onboarding-items', data).then(r => r.data),
+  updateOnboardingItem: (id, data) => api.patch(`/api/platform/onboarding-items/${id}`, data).then(r => r.data),
+  deleteOnboardingItem: (id) => api.delete(`/api/platform/onboarding-items/${id}`).then(r => r.data),
+  getOnboardingOverview: () => api.get('/api/platform/onboarding/overview').then(r => r.data),
 };
 
 export const billingApi = {
@@ -88,6 +94,12 @@ export const limitsApi = {
 export const featuresApi = {
   getFeatures: (slug) => api.get(`/api/restaurants/${slug}/features`).then(r => r.data),
   checkFeature: (slug, featureKey) => api.get(`/api/restaurants/${slug}/features/${featureKey}`).then(r => r.data),
+};
+
+export const onboardingApi = {
+  getOnboarding: (slug) => api.get(`/api/restaurants/${slug}/onboarding`).then(r => r.data),
+  completeItem: (slug, itemId, notes) => api.post(`/api/restaurants/${slug}/onboarding/${itemId}/complete`, { notes }).then(r => r.data),
+  uncompleteItem: (slug, itemId) => api.post(`/api/restaurants/${slug}/onboarding/${itemId}/uncomplete`).then(r => r.data),
 };
 
 export const authApi = {
