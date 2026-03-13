@@ -10,6 +10,7 @@ import { getSupportTickets, updateTicket, getTicketStats } from '../controllers/
 import { getOnboardingItems, createOnboardingItem, updateOnboardingItem, deleteOnboardingItem, getOnboardingOverview } from '../controllers/onboarding.controller.js';
 import { getTrials, getTrialStats, startTrial, convertTrial, extendTrial, getTrialEngagement } from '../controllers/trialManagement.controller.js';
 import { getRevenueAnalytics, getMrrHistory, getUpgradeAnalysis, recordRevenueEvent, createMrrSnapshot } from '../controllers/revenueAnalytics.controller.js';
+import { getReferrals, getReferralStats, markReferralConverted, payReferralReward, updateReferralCode } from '../controllers/referralProgram.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 
 const router = Router();
@@ -56,6 +57,11 @@ router.get('/revenue/mrr-history', getMrrHistory);
 router.get('/revenue/upgrades', getUpgradeAnalysis);
 router.post('/revenue/events', recordRevenueEvent);
 router.post('/revenue/snapshot', createMrrSnapshot);
+router.get('/referrals', getReferrals);
+router.get('/referrals/stats', getReferralStats);
+router.post('/referrals/:id/mark-converted', markReferralConverted);
+router.post('/referrals/:id/pay-reward', payReferralReward);
+router.patch('/referral-codes/:id', updateReferralCode);
 router.patch('/restaurants/:id/plan', updatePlan);
 router.patch('/restaurants/:id/toggle', toggleRestaurant);
 router.patch('/users/:id/role', updateUserRole);

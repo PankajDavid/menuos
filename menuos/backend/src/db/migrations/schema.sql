@@ -525,6 +525,45 @@ CREATE INDEX IF NOT EXISTS idx_revenue_events_type ON revenue_events(event_type)
 CREATE INDEX IF NOT EXISTS idx_revenue_events_date ON revenue_events(event_date);
 CREATE INDEX IF NOT EXISTS idx_mrr_snapshots_date ON mrr_snapshots(snapshot_date);
 
+-- ── REFERRAL PROGRAM ──────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS referral_codes (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code                  VARCHAR(50) UNIQUE NOT NULL,
+  restaurant_id         UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+  created_by_user_id    UUID REFERENCES users(id),
+  discount_percent      INTEGER DEFAULT 20, -- discount for referred customer
+  reward_amount         DECIMAL(10,2) DEFAULT 500, -- reward for referrer (in INR)
+  max_uses              INTEGER, -- NULL = unlimited
+  used_count            INTEGER DEFAULT 0,
+  is_active             BOOLEAN DEFAULT TRUE,
+  expires_at            TIMESTAMPTZ,
+  created_at            TIMESTAMPTZ DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Referral tracking
+CREATE TABLE IF NOT EXISTS referrals (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  referral_code_id      UUID REFERENCES referral_codes(id) ON DELETE SET NULL,
+  referrer_restaurant_id UUID REFERENCES restaurants(id) ON DELETE SET NULL,
+  referred_restaurant_id UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+  status                VARCHAR(20) DEFAULT 'pending', -- pending, converted, expired
+  discount_applied      BOOLEAN DEFAULT FALSE,
+  reward_paid           BOOLEAN DEFAULT FALSE,
+  reward_paid_at        TIMESTAMPTZ,
+  reward_paid_amount    DECIMAL(10,2),
+  converted_at          TIMESTAMPTZ,
+  created_at            TIMESTAMPTZ DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(referred_restaurant_id)
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_referral_codes_restaurant ON referral_codes(restaurant_id);
+CREATE INDEX IF NOT EXISTS idx_referral_codes_code ON referral_codes(code);
+CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_restaurant_id);
+CREATE INDEX IF NOT EXISTS idx_referrals_status ON referrals(status);
+
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
 INSERT INTO users (restaurant_id, name, email, password_hash, role)

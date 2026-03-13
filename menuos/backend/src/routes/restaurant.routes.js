@@ -5,6 +5,7 @@ import { getRestaurantLimits, checkLimit } from '../controllers/planLimits.contr
 import { getRestaurantFeatures, checkFeature } from '../controllers/featureFlags.controller.js';
 import { getRestaurantOnboarding, completeOnboardingItem, uncompleteOnboardingItem } from '../controllers/onboarding.controller.js';
 import { trackEngagement } from '../controllers/trialManagement.controller.js';
+import { createReferralCode, getMyReferralCodes, getMyReferrals } from '../controllers/referralProgram.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 import { tenantResolver, requireTenantAccess } from '../middleware/tenantResolver.js';
 
@@ -34,5 +35,10 @@ router.post('/:slug/onboarding/:itemId/uncomplete', tenantResolver, authenticate
 
 // Trial engagement tracking
 router.post('/:slug/trial/track', tenantResolver, authenticate, requireTenantAccess, trackEngagement);
+
+// Referral routes
+router.get('/:slug/referral-codes', tenantResolver, authenticate, requireTenantAccess, getMyReferralCodes);
+router.post('/:slug/referral-codes', tenantResolver, authenticate, requireTenantAccess, createReferralCode);
+router.get('/:slug/referrals', tenantResolver, authenticate, requireTenantAccess, getMyReferrals);
 
 export default router;

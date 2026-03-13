@@ -89,6 +89,11 @@ export const platformApi = {
   getRevenueAnalytics: (period) => api.get('/api/platform/revenue/analytics', { params: { period } }).then(r => r.data),
   getMrrHistory: (months) => api.get('/api/platform/revenue/mrr-history', { params: { months } }).then(r => r.data),
   getUpgradeAnalysis: (period) => api.get('/api/platform/revenue/upgrades', { params: { period } }).then(r => r.data),
+  // Referral Program (Platform Admin)
+  getReferrals: (params) => api.get('/api/platform/referrals', { params }).then(r => r.data),
+  getReferralStats: () => api.get('/api/platform/referrals/stats').then(r => r.data),
+  markReferralConverted: (id) => api.post(`/api/platform/referrals/${id}/mark-converted`).then(r => r.data),
+  payReferralReward: (id, amount) => api.post(`/api/platform/referrals/${id}/pay-reward`, { amount }).then(r => r.data),
 };
 
 export const billingApi = {
@@ -115,6 +120,13 @@ export const onboardingApi = {
 
 export const trialApi = {
   trackEngagement: (slug, eventType, eventData) => api.post(`/api/restaurants/${slug}/trial/track`, { event_type: eventType, event_data: eventData }).then(r => r.data),
+};
+
+export const referralApi = {
+  getMyReferralCodes: (slug) => api.get(`/api/restaurants/${slug}/referral-codes`).then(r => r.data),
+  createReferralCode: (slug, data) => api.post(`/api/restaurants/${slug}/referral-codes`, data).then(r => r.data),
+  getMyReferrals: (slug) => api.get(`/api/restaurants/${slug}/referrals`).then(r => r.data),
+  applyReferralCode: (code, restaurantId) => api.post('/api/auth/referrals/apply', { code, restaurant_id: restaurantId }).then(r => r.data),
 };
 
 export const authApi = {
