@@ -15,6 +15,8 @@ export default function PlatformAdmin() {
   const { data: analytics } = useQuery({ queryKey: ['platform-analytics'], queryFn: platformApi.getAnalytics });
   const { data: restaurants = [] } = useQuery({ queryKey: ['platform-restaurants'], queryFn: platformApi.getRestaurants });
   const { data: users = [] } = useQuery({ queryKey: ['platform-users'], queryFn: platformApi.getUsers, enabled: activeTab === 'users' });
+  const { data: invoices = [] } = useQuery({ queryKey: ['platform-invoices'], queryFn: platformApi.getInvoices, enabled: activeTab === 'invoices' });
+  const { data: discounts = [] } = useQuery({ queryKey: ['platform-discounts'], queryFn: platformApi.getDiscounts, enabled: activeTab === 'discounts' });
 
   const planMutation = useMutation({
     mutationFn: ({ id, plan }) => platformApi.updatePlan(id, plan),
@@ -24,6 +26,21 @@ export default function PlatformAdmin() {
   const toggleMutation = useMutation({
     mutationFn: (id) => platformApi.toggle(id),
     onSuccess: () => qc.invalidateQueries(['platform-restaurants']),
+  });
+
+  const payInvoiceMutation = useMutation({
+    mutationFn: ({ id, payment_method }) => platformApi.payInvoice(id, { payment_method }),
+    onSuccess: () => qc.invalidateQueries(['platform-invoices']),
+  });
+
+  const createDiscountMutation = useMutation({
+    mutationFn: (data) => platformApi.createDiscount(data),
+    onSuccess: () => qc.invalidateQueries(['platform-discounts']),
+  });
+
+  const checkSubscriptionsMutation = useMutation({
+    mutationFn: () => platformApi.checkSubscriptions(),
+    onSuccess: () => qc.invalidateQueries(['platform-restaurants', 'platform-analytics']),
   });
 
   const handleLogout = async () => { await logout(); navigate('/login'); };
@@ -129,7 +146,7 @@ export default function PlatformAdmin() {
         )}
 
         {/* Tab Navigation */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
           <button
             onClick={() => setActiveTab('restaurants')}
             style={{
@@ -160,6 +177,53 @@ export default function PlatformAdmin() {
           >
             👥 Users ({users.length})
           </button>
+          <button
+            onClick={() => setActiveTab('invoices')}
+            style={{
+              padding: '10px 20px',
+              background: activeTab === 'invoices' ? '#C8A84B' : '#1e293b',
+              color: activeTab === 'invoices' ? '#0f172a' : '#94a3b8',
+              border: 'none',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            🧾 Invoices ({invoices.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('discounts')}
+            style={{
+              padding: '10px 20px',
+              background: activeTab === 'discounts' ? '#C8A84B' : '#1e293b',
+              color: activeTab === 'discounts' ? '#0f172a' : '#94a3b8',
+              border: 'none',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            🎟️ Discounts ({discounts.length})
+          </button>
+          <button
+            onClick={() => checkSubscriptionsMutation.mutate()}
+            disabled={checkSubscriptionsMutation.isPending}
+            style={{
+              padding: '10px 20px',
+              background: '#1e40af',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: checkSubscriptionsMutation.isPending ? 'not-allowed' : 'pointer',
+              opacity: checkSubscriptionsMutation.isPending ? 0.6 : 1
+            }}
+          >
+            🔄 Check Subscriptions
+          </button>
         </div>
 
         {/* Restaurants table */}
@@ -172,7 +236,7 @@ export default function PlatformAdmin() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #334155' }}>
-                  {['Restaurant', 'Owner', 'Plan', 'Orders', 'Revenue', 'Status', 'Actions'].map(h => (
+                  {['Restaurant', 'Owner', 'Plan', 'Sub Status', 'Payment', 'Next Due', 'Orders', 'Revenue', 'Status', 'Actions'].map(h => (
                     <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>{h}</th>
                   ))}
                 </tr>
@@ -194,6 +258,19 @@ export default function PlatformAdmin() {
                         <option value="pro">Pro</option>
                         <option value="premium">Premium</option>
                       </select>
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: r.subscription_status === 'active' ? '#dcfce7' : r.subscription_status === 'grace_period' ? '#fef3c7' : r.subscription_status === 'suspended' ? '#fee2e2' : '#f3f4f6', color: r.subscription_status === 'active' ? '#16A34A' : r.subscription_status === 'grace_period' ? '#92400e' : r.subscription_status === 'suspended' ? '#dc2626' : '#374151' }}>
+                        {r.subscription_status || 'active'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: r.payment_status === 'paid' ? '#dcfce7' : r.payment_status === 'overdue' ? '#fee2e2' : '#fef3c7', color: r.payment_status === 'paid' ? '#16A34A' : r.payment_status === 'overdue' ? '#dc2626' : '#92400e' }}>
+                        {r.payment_status || 'pending'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 16px', color: r.next_payment_date && new Date(r.next_payment_date) < new Date() ? '#ef4444' : '#94a3b8', fontSize: 13 }}>
+                      {r.next_payment_date ? new Date(r.next_payment_date).toLocaleDateString() : 'N/A'}
                     </td>
                     <td style={{ padding: '14px 16px', color: '#94a3b8' }}>{r.total_orders}</td>
                     <td style={{ padding: '14px 16px', color: '#C8A84B', fontWeight: 600 }}>₹{parseFloat(r.total_revenue || 0).toFixed(0)}</td>
@@ -261,6 +338,104 @@ export default function PlatformAdmin() {
                     <td style={{ padding: '14px 16px' }}>
                       <a href={`/r/${u.restaurant_slug}/admin`} target="_blank" rel="noreferrer"
                         style={{ padding: '5px 10px', background: '#1e40af', color: '#fff', borderRadius: 6, fontSize: 12, textDecoration: 'none' }}>View</a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        )}
+
+        {/* Invoices table */}
+        {activeTab === 'invoices' && (
+        <div style={{ background: '#1e293b', borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ padding: '20px 24px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700 }}>All Invoices ({invoices.length})</h2>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #334155' }}>
+                  {['Invoice #', 'Restaurant', 'Plan', 'Amount', 'Discount', 'Final', 'Status', 'Due Date', 'Actions'].map(h => (
+                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {invoices.map(inv => (
+                  <tr key={inv.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                    <td style={{ padding: '14px 16px', fontWeight: 600 }}>{inv.invoice_number}</td>
+                    <td style={{ padding: '14px 16px', color: '#94a3b8' }}>{inv.restaurant_name}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: PLAN_COLORS[inv.plan], color: '#fff' }}>
+                        {inv.plan}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>₹{parseFloat(inv.amount).toFixed(0)}</td>
+                    <td style={{ padding: '14px 16px', color: '#22c55e' }}>₹{parseFloat(inv.discount_amount).toFixed(0)}</td>
+                    <td style={{ padding: '14px 16px', fontWeight: 600, color: '#C8A84B' }}>₹{parseFloat(inv.final_amount).toFixed(0)}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: inv.status === 'paid' ? '#dcfce7' : inv.status === 'overdue' ? '#fee2e2' : '#fef3c7', color: inv.status === 'paid' ? '#16A34A' : inv.status === 'overdue' ? '#dc2626' : '#92400e' }}>
+                        {inv.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 16px', color: '#94a3b8' }}>{new Date(inv.due_date).toLocaleDateString()}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      {inv.status === 'pending' && (
+                        <button 
+                          onClick={() => payInvoiceMutation.mutate({ id: inv.id, payment_method: 'manual' })}
+                          disabled={payInvoiceMutation.isPending}
+                          style={{ padding: '5px 10px', background: '#16A34A', color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}
+                        >
+                          Mark Paid
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        )}
+
+        {/* Discounts table */}
+        {activeTab === 'discounts' && (
+        <div style={{ background: '#1e293b', borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ padding: '20px 24px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700 }}>Discount Codes ({discounts.length})</h2>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #334155' }}>
+                  {['Code', 'Name', 'Type', 'Value', 'Uses', 'Valid Period', 'Status'].map(h => (
+                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {discounts.map(d => (
+                  <tr key={d.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                    <td style={{ padding: '14px 16px', fontWeight: 600, fontFamily: 'monospace', background: '#334155', borderRadius: 4 }}>{d.code}</td>
+                    <td style={{ padding: '14px 16px' }}>{d.name}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, textTransform: 'capitalize', background: d.discount_type === 'percentage' ? '#dbeafe' : d.discount_type === 'fixed' ? '#fef3c7' : '#dcfce7', color: d.discount_type === 'percentage' ? '#1e40af' : d.discount_type === 'fixed' ? '#92400e' : '#16A34A' }}>
+                        {d.discount_type}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
+                      {d.discount_type === 'percentage' ? `${d.discount_value}%` : d.discount_type === 'fixed' ? `₹${d.discount_value}` : `${d.discount_value} days`}
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>{d.used_count}{d.max_uses ? `/${d.max_uses}` : ''}</td>
+                    <td style={{ padding: '14px 16px', color: '#94a3b8', fontSize: 13 }}>
+                      {new Date(d.valid_from).toLocaleDateString()} - {new Date(d.valid_until).toLocaleDateString()}
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: d.is_active ? '#dcfce7' : '#fee2e2', color: d.is_active ? '#16A34A' : '#dc2626' }}>
+                        {d.is_active ? 'Active' : 'Inactive'}
+                      </span>
                     </td>
                   </tr>
                 ))}
