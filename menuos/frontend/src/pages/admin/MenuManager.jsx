@@ -5,11 +5,15 @@ import { menuApi } from '../../api/queries.js';
 
 const EMPTY = { name: '', category: '', description: '', price: '', tags: '', allergens: '', image_url: '', video_url: '', is_available: true };
 
-// Cloudinary configuration
-const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dfrptpobe';
+// Cloudinary configuration - Set these in Railway environment variables
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'menuos_uploads';
 
 async function uploadToCloudinary(file, type = 'image') {
+  if (!CLOUDINARY_CLOUD_NAME) {
+    throw new Error('Cloudinary not configured. Please set VITE_CLOUDINARY_CLOUD_NAME environment variable.');
+  }
+  
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
