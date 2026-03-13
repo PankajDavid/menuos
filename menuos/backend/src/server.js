@@ -17,6 +17,7 @@ import menuRoutes from './routes/menu.routes.js';
 import orderRoutes from './routes/order.routes.js';
 import tableRoutes from './routes/table.routes.js';
 import platformRoutes from './routes/platform.routes.js';
+import billingRoutes from './routes/billing.routes.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -37,6 +38,7 @@ app.use('/api/restaurants/:slug/menu', menuRoutes);
 app.use('/api/restaurants/:slug/orders', orderRoutes);
 app.use('/api/restaurants/:slug/tables', tableRoutes);
 app.use('/api/platform', platformRoutes);
+app.use('/api', billingRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'ok', ts: new Date() }));
 

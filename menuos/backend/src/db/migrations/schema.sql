@@ -41,6 +41,35 @@ BEGIN
     END IF;
 END $$;
 
+-- Add subscription management columns (for existing databases)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'restaurants' AND column_name = 'subscription_status') THEN
+        ALTER TABLE restaurants ADD COLUMN subscription_status VARCHAR(20) DEFAULT 'active';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'restaurants' AND column_name = 'payment_status') THEN
+        ALTER TABLE restaurants ADD COLUMN payment_status VARCHAR(20) DEFAULT 'pending';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'restaurants' AND column_name = 'last_payment_date') THEN
+        ALTER TABLE restaurants ADD COLUMN last_payment_date TIMESTAMPTZ;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'restaurants' AND column_name = 'next_payment_date') THEN
+        ALTER TABLE restaurants ADD COLUMN next_payment_date TIMESTAMPTZ;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'restaurants' AND column_name = 'grace_period_end_date') THEN
+        ALTER TABLE restaurants ADD COLUMN grace_period_end_date TIMESTAMPTZ;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'restaurants' AND column_name = 'platform_fee_amount') THEN
+        ALTER TABLE restaurants ADD COLUMN platform_fee_amount DECIMAL(10,2) DEFAULT 0;
+    END IF;
+END $$;
+
 -- ── USERS ─────────────────────────────────────────────────────────────────
 DO $$ BEGIN
     CREATE TYPE user_role AS ENUM ('admin', 'staff', 'kitchen', 'platform_admin');
@@ -160,6 +189,50 @@ DO $$ BEGIN
       FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
+
+-- ── INVOICES ──────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS invoices (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  restaurant_id         UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+  invoice_number        VARCHAR(50) UNIQUE NOT NULL,
+  amount                DECIMAL(10,2) NOT NULL,
+  discount_amount       DECIMAL(10,2) DEFAULT 0,
+  final_amount          DECIMAL(10,2) NOT NULL,
+  plan                  subscription_plan NOT NULL,
+  status                VARCHAR(20) DEFAULT 'pending', -- pending, paid, overdue, cancelled
+  due_date              TIMESTAMPTZ NOT NULL,
+  paid_date             TIMESTAMPTZ,
+  payment_method        VARCHAR(50), -- manual, online, etc.
+  notes                 TEXT,
+  created_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ── DISCOUNTS ─────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS discounts (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code                  VARCHAR(50) UNIQUE NOT NULL,
+  name                  VARCHAR(255) NOT NULL,
+  discount_type         VARCHAR(20) NOT NULL, -- percentage, fixed, extension
+  discount_value        DECIMAL(10,2) NOT NULL, -- percentage value or fixed amount or days
+  max_uses              INTEGER,
+  used_count            INTEGER DEFAULT 0,
+  valid_from            TIMESTAMPTZ NOT NULL,
+  valid_until           TIMESTAMPTZ NOT NULL,
+  is_active             BOOLEAN DEFAULT TRUE,
+  created_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ── NOTIFICATIONS ─────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS notifications (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  restaurant_id         UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+  type                  VARCHAR(50) NOT NULL, -- subscription_expiry, payment_reminder, etc.
+  title                 VARCHAR(255) NOT NULL,
+  message               TEXT NOT NULL,
+  is_read               BOOLEAN DEFAULT FALSE,
+  email_sent            BOOLEAN DEFAULT FALSE,
+  created_at            TIMESTAMPTZ DEFAULT NOW()
+);
 
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)

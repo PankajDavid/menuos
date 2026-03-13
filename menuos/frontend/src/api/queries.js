@@ -36,4 +36,17 @@ export const platformApi = {
   updatePlan: (id, plan) => api.patch(`/api/platform/restaurants/${id}/plan`, { plan }).then(r => r.data),
   toggle: (id) => api.patch(`/api/platform/restaurants/${id}/toggle`).then(r => r.data),
   updateUserRole: (id, role) => api.patch(`/api/platform/users/${id}/role`, { role }).then(r => r.data),
+  // Billing
+  getInvoices: () => api.get('/api/platform/invoices').then(r => r.data),
+  createInvoice: (data) => api.post('/api/platform/invoices', data).then(r => r.data),
+  payInvoice: (id, data) => api.patch(`/api/platform/invoices/${id}/pay`, data).then(r => r.data),
+  getDiscounts: () => api.get('/api/platform/discounts').then(r => r.data),
+  createDiscount: (data) => api.post('/api/platform/discounts', data).then(r => r.data),
+  checkSubscriptions: () => api.post('/api/platform/check-subscriptions').then(r => r.data),
+};
+
+export const billingApi = {
+  getInvoices: (slug) => api.get(`/api/restaurants/${slug}/invoices`).then(r => r.data),
+  getNotifications: (slug) => api.get(`/api/restaurants/${slug}/notifications`).then(r => r.data),
+  markNotificationRead: (slug, id) => api.patch(`/api/restaurants/${slug}/notifications/${id}/read`).then(r => r.data),
 };
