@@ -7,12 +7,15 @@ const api = axios.create({
 
 // Add request interceptor to include auth token
 api.interceptors.request.use((config) => {
+  // Get token from localStorage (Zustand persist storage)
   const token = localStorage.getItem('menuos-auth');
   if (token) {
     try {
       const parsed = JSON.parse(token);
-      if (parsed.state?.accessToken) {
-        config.headers.Authorization = `Bearer ${parsed.state.accessToken}`;
+      // Handle both Zustand persist format and direct format
+      const accessToken = parsed.state?.accessToken || parsed.accessToken;
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
       }
     } catch (e) {
       // Ignore parse errors
@@ -28,8 +31,14 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Only redirect to login on protected routes
       const currentPath = window.location.pathname;
-      const publicPaths = ['/r/', '/login', '/signup', '/'];
-      const isPublicPath = publicPaths.some(path => currentPath.startsWith(path) || currentPath === path);
+      // Public paths that don't require auth
+      const publicPaths = ['/login', '/signup', '/'];
+      // Customer-facing menu paths like /r/:slug/menu are public
+      // But /r/:slug/admin, /r/:slug/kitchen are protected
+      const isPublicPath = publicPaths.some(path => currentPath === path) || 
+                           /^\/r\/[^\/]+\/menu/.test(currentPath) ||
+                           /^\/r\/[^\/]+\/checkout/.test(currentPath) ||
+                           /^\/r\/[^\/]+\/order-confirm/.test(currentPath);
       
       if (!isPublicPath) {
         // Clear auth and redirect to login
