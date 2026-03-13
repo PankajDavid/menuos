@@ -5,8 +5,8 @@ import { menuApi } from '../../api/queries.js';
 
 const EMPTY = { name: '', category: '', description: '', price: '', tags: '', allergens: '', image_url: '', video_url: '', is_available: true };
 
-// Cloudinary configuration - Replace with your credentials
-const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'your-cloud-name';
+// Cloudinary configuration
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dfrptpobe';
 const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'menuos_uploads';
 
 async function uploadToCloudinary(file, type = 'image') {
