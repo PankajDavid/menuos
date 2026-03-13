@@ -273,3 +273,67 @@ export async function getPopularItems(req, res, next) {
     res.json(result.rows);
   } catch (err) { next(err); }
 }
+
+// GET /api/platform/geography - Geographic distribution of restaurants
+export async function getGeographicDistribution(req, res, next) {
+  try {
+    const result = await query(`
+      SELECT 
+        id,
+        name,
+        slug,
+        address,
+        city,
+        state,
+        country,
+        subscription_plan,
+        is_active,
+        created_at,
+        COALESCE(latitude, 0) as latitude,
+        COALESCE(longitude, 0) as longitude
+      FROM restaurants
+      WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+      ORDER BY created_at DESC
+    `);
+
+    // Also get summary by country and state
+    const summaryResult = await query(`
+      SELECT 
+        country,
+        state,
+        COUNT(*) as count,
+        subscription_plan,
+        COUNT(CASE WHEN is_active THEN 1 END) as active_count
+      FROM restaurants
+      WHERE country IS NOT NULL
+      GROUP BY country, state, subscription_plan
+      ORDER BY country, state
+    `);
+
+    // Aggregate by country
+    const byCountry = {};
+    summaryResult.rows.forEach(row => {
+      if (!byCountry[row.country]) {
+        byCountry[row.country] = { count: 0, active: 0, states: {} };
+      }
+      byCountry[row.country].count += parseInt(row.count);
+      byCountry[row.country].active += parseInt(row.active_count);
+      
+      if (row.state) {
+        if (!byCountry[row.country].states[row.state]) {
+          byCountry[row.country].states[row.state] = { count: 0, active: 0 };
+        }
+        byCountry[row.country].states[row.state].count += parseInt(row.count);
+        byCountry[row.country].states[row.state].active += parseInt(row.active_count);
+      }
+    });
+
+    res.json({
+      restaurants: result.rows,
+      summary: {
+        byCountry,
+        total: result.rows.length
+      }
+    });
+  } catch (err) { next(err); }
+}

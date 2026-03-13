@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllRestaurants, getPlatformAnalytics, updatePlan, toggleRestaurant, updateUserRole, getAllUsers, exportRestaurants, exportOrders, getPopularItems, bulkUpdateUserRoles, bulkActivateUsers }
+import { getAllRestaurants, getPlatformAnalytics, updatePlan, toggleRestaurant, updateUserRole, getAllUsers, exportRestaurants, exportOrders, getPopularItems, bulkUpdateUserRoles, bulkActivateUsers, getGeographicDistribution }
   from '../controllers/platform.controller.js';
 import { getActivityLogs, getActivitySummary } from '../controllers/activity.controller.js';
 import { getPlanLimits, updatePlanLimits } from '../controllers/planLimits.controller.js';
@@ -19,6 +19,7 @@ router.get('/activity-logs/summary', getActivitySummary);
 router.get('/plan-limits', getPlanLimits);
 router.patch('/plan-limits/:plan', updatePlanLimits);
 router.get('/popular-items', getPopularItems);
+router.get('/geography', getGeographicDistribution);
 router.get('/feature-flags', getFeatureFlags);
 router.patch('/feature-flags/:key', updateFeatureFlag);
 router.patch('/restaurants/:id/plan', updatePlan);

@@ -53,6 +53,7 @@ export const platformApi = {
   updatePlanLimits: (plan, data) => api.patch(`/api/platform/plan-limits/${plan}`, data).then(r => r.data),
   // Analytics
   getPopularItems: () => api.get('/api/platform/popular-items').then(r => r.data),
+  getGeography: () => api.get('/api/platform/geography').then(r => r.data),
   // Feature Flags
   getFeatureFlags: () => api.get('/api/platform/feature-flags').then(r => r.data),
   updateFeatureFlag: (key, data) => api.patch(`/api/platform/feature-flags/${key}`, data).then(r => r.data),
