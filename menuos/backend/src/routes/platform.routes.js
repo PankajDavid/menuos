@@ -13,6 +13,7 @@ import { getRevenueAnalytics, getMrrHistory, getUpgradeAnalysis, recordRevenueEv
 import { getReferrals, getReferralStats, markReferralConverted, payReferralReward, updateReferralCode } from '../controllers/referralProgram.controller.js';
 import { getConversations, getConversation, sendPlatformMessage, updateConversation, getMessagingStats, createPlatformConversation } from '../controllers/messaging.controller.js';
 import { getFailedPayments, getFailedPaymentStats, recordFailedPayment, retryFailedPayment, resolveFailedPayment, cancelFailedPayment, moveToDunning, getDunningReport } from '../controllers/failedPayments.controller.js';
+import { getRestaurantHealth, getHealthStats, getRestaurantHealthDetail, createHealthSnapshot } from '../controllers/restaurantHealth.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 
 const router = Router();
@@ -78,6 +79,10 @@ router.post('/failed-payments/:id/retry', retryFailedPayment);
 router.post('/failed-payments/:id/resolve', resolveFailedPayment);
 router.post('/failed-payments/:id/cancel', cancelFailedPayment);
 router.post('/failed-payments/:id/dunning', moveToDunning);
+router.get('/health', getRestaurantHealth);
+router.get('/health/stats', getHealthStats);
+router.get('/health/:restaurantId', getRestaurantHealthDetail);
+router.post('/health/snapshot', createHealthSnapshot);
 router.patch('/restaurants/:id/plan', updatePlan);
 router.patch('/restaurants/:id/toggle', toggleRestaurant);
 router.patch('/users/:id/role', updateUserRole);

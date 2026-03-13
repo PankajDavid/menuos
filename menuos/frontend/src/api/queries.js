@@ -109,6 +109,10 @@ export const platformApi = {
   resolveFailedPayment: (id, notes) => api.post(`/api/platform/failed-payments/${id}/resolve`, { notes }).then(r => r.data),
   cancelFailedPayment: (id, notes) => api.post(`/api/platform/failed-payments/${id}/cancel`, { notes }).then(r => r.data),
   moveToDunning: (id) => api.post(`/api/platform/failed-payments/${id}/dunning`).then(r => r.data),
+  // Restaurant Health (Platform Admin)
+  getRestaurantHealth: (params) => api.get('/api/platform/health', { params }).then(r => r.data),
+  getHealthStats: () => api.get('/api/platform/health/stats').then(r => r.data),
+  getRestaurantHealthDetail: (id) => api.get(`/api/platform/health/${id}`).then(r => r.data),
 };
 
 export const billingApi = {

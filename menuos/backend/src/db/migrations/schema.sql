@@ -621,6 +621,36 @@ CREATE INDEX IF NOT EXISTS idx_failed_payments_restaurant ON failed_payments(res
 CREATE INDEX IF NOT EXISTS idx_failed_payments_status ON failed_payments(status);
 CREATE INDEX IF NOT EXISTS idx_failed_payments_created ON failed_payments(created_at);
 
+-- ── RESTAURANT HEALTH MONITORING ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS restaurant_health_snapshots (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  restaurant_id         UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+  snapshot_date         DATE DEFAULT CURRENT_DATE,
+  menu_item_count       INTEGER DEFAULT 0,
+  menu_item_limit       INTEGER DEFAULT 0,
+  menu_item_usage_pct   DECIMAL(5,2) DEFAULT 0,
+  category_count        INTEGER DEFAULT 0,
+  category_limit        INTEGER DEFAULT 0,
+  category_usage_pct    DECIMAL(5,2) DEFAULT 0,
+  staff_count           INTEGER DEFAULT 0,
+  staff_limit           INTEGER DEFAULT 0,
+  staff_usage_pct       DECIMAL(5,2) DEFAULT 0,
+  table_count           INTEGER DEFAULT 0,
+  table_limit           INTEGER DEFAULT 0,
+  table_usage_pct       DECIMAL(5,2) DEFAULT 0,
+  media_usage_mb        DECIMAL(10,2) DEFAULT 0,
+  media_limit_mb        DECIMAL(10,2) DEFAULT 0,
+  media_usage_pct       DECIMAL(5,2) DEFAULT 0,
+  overall_health_score  INTEGER DEFAULT 100, -- 0-100
+  warnings              JSONB DEFAULT '[]',
+  created_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_health_snapshots_restaurant ON restaurant_health_snapshots(restaurant_id);
+CREATE INDEX IF NOT EXISTS idx_health_snapshots_date ON restaurant_health_snapshots(snapshot_date);
+CREATE INDEX IF NOT EXISTS idx_health_score ON restaurant_health_snapshots(overall_health_score);
+
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
 INSERT INTO users (restaurant_id, name, email, password_hash, role)
