@@ -39,8 +39,8 @@ export default function App() {
         <Route path="/r/:slug/kitchen" element={<KitchenDashboard />} />
       </Route>
 
-      {/* Admin */}
-      <Route element={<AuthGuard roles={['admin']} />}>
+      {/* Admin (includes platform_admin) */}
+      <Route element={<AuthGuard roles={['admin', 'platform_admin']} />}>
         <Route path="/r/:slug/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="menu" element={<MenuManager />} />
@@ -51,7 +51,7 @@ export default function App() {
 
       {/* Platform Super Admin */}
       <Route element={<AuthGuard roles={['platform_admin']} />}>
-        <Route path="/platform-admin" element={<PlatformAdmin />} />
+        <Route path="/platform" element={<PlatformAdmin />} />
       </Route>
 
       <Route path="/unauthorized" element={<div style={{padding:40,textAlign:'center'}}><h2>403 — Access Denied</h2></div>} />

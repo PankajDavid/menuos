@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { platformApi } from '../../api/queries.js';
 import { useAuthStore } from '../../store/authStore.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
-const PLAN_COLORS = { free: '#64748b', basic: '#2563EB', pro: '#C8A84B' };
+const PLAN_COLORS = { free: '#64748b', basic: '#2563EB', pro: '#C8A84B', premium: '#7C3AED' };
 
 export default function PlatformAdmin() {
   const qc = useQueryClient();
@@ -30,7 +30,10 @@ export default function PlatformAdmin() {
       {/* Header */}
       <div style={{ background: '#1e293b', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155' }}>
         <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, color: '#C8A84B' }}>🍽 MenuOS — Platform Admin</div>
-        <button onClick={handleLogout} style={{ background: 'transparent', border: '1px solid #334155', color: '#94a3b8', padding: '7px 16px', borderRadius: 8, cursor: 'pointer' }}>Logout</button>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <Link to="/r/pankys/admin" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 14, padding: '7px 16px', border: '1px solid #334155', borderRadius: 8 }}>🏪 My Restaurant</Link>
+          <button onClick={handleLogout} style={{ background: 'transparent', border: '1px solid #334155', color: '#94a3b8', padding: '7px 16px', borderRadius: 8, cursor: 'pointer' }}>Logout</button>
+        </div>
       </div>
 
       <div style={{ padding: 32 }}>
@@ -96,6 +99,7 @@ export default function PlatformAdmin() {
                         <option value="free">Free</option>
                         <option value="basic">Basic</option>
                         <option value="pro">Pro</option>
+                        <option value="premium">Premium</option>
                       </select>
                     </td>
                     <td style={{ padding: '14px 16px', color: '#94a3b8' }}>{r.total_orders}</td>

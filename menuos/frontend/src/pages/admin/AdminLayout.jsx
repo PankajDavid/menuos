@@ -51,6 +51,9 @@ export default function AdminLayout() {
         <div style={S.footer}>
           <a href={`/r/${slug}/kitchen`} style={S.kitchenBtn}>👨‍🍳 Kitchen View</a>
           <a href={`/r/${slug}/menu`} target="_blank" rel="noreferrer" style={S.kitchenBtn}>🔗 View Menu</a>
+          {user?.role === 'platform_admin' && (
+            <a href="/platform" style={{...S.kitchenBtn, color: '#C8A84B', fontWeight: 600}}>⚡ Platform Admin</a>
+          )}
           <button onClick={handleLogout} style={S.logoutBtn}>🚪 Logout</button>
         </div>
       </aside>
