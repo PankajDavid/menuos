@@ -61,3 +61,9 @@ export const limitsApi = {
   getLimits: (slug) => api.get(`/api/restaurants/${slug}/limits`).then(r => r.data),
   checkLimit: (slug, resource) => api.get(`/api/restaurants/${slug}/limits/${resource}`).then(r => r.data),
 };
+
+export const authApi = {
+  forgotPassword: (email) => api.post('/api/auth/forgot-password', { email }).then(r => r.data),
+  resetPassword: (token, password) => api.post('/api/auth/reset-password', { token, password }).then(r => r.data),
+  changePassword: (currentPassword, newPassword) => api.post('/api/auth/change-password', { currentPassword, newPassword }).then(r => r.data),
+};

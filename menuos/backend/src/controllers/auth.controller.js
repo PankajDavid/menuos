@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { query } from '../db/pool.js';
 import { slugify } from '../utils/slugify.js';
 import { logActivity } from './activity.controller.js';
@@ -141,5 +142,120 @@ export async function logout(req, res, next) {
   try {
     await query('DELETE FROM refresh_tokens WHERE user_id = $1', [req.user.userId]);
     res.json({ message: 'Logged out' });
+  } catch (err) { next(err); }
+}
+
+// POST /api/auth/forgot-password
+export async function forgotPassword(req, res, next) {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    const userResult = await query('SELECT id, name, email FROM users WHERE email = $1', [email]);
+    if (!userResult.rows[0]) {
+      // Don't reveal if email exists
+      return res.json({ message: 'If an account exists, a reset link has been sent' });
+    }
+
+    const user = userResult.rows[0];
+    
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await query(
+      'UPDATE users SET password_reset_token = $1, password_reset_expires = $2 WHERE id = $3',
+      [resetToken, resetExpires, user.id]
+    );
+
+    // Log activity (mock email - in production, send actual email)
+    await logActivity({
+      user_id: user.id,
+      user_name: user.name,
+      action: 'password_reset_requested',
+      entity_type: 'user',
+      entity_id: user.id,
+      details: { email: user.email, reset_token: resetToken },
+      ip_address: req.ip
+    });
+
+    // In production, send email with reset link
+    // For now, return the token in response (for testing)
+    res.json({ 
+      message: 'If an account exists, a reset link has been sent',
+      // Only in development:
+      ...(process.env.NODE_ENV !== 'production' && { resetToken, resetUrl: `/reset-password?token=${resetToken}` })
+    });
+  } catch (err) { next(err); }
+}
+
+// POST /api/auth/reset-password
+export async function resetPassword(req, res, next) {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ error: 'Token and password are required' });
+    if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
+
+    const userResult = await query(
+      'SELECT id, name, email FROM users WHERE password_reset_token = $1 AND password_reset_expires > NOW()',
+      [token]
+    );
+
+    if (!userResult.rows[0]) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const user = userResult.rows[0];
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    await query(
+      'UPDATE users SET password_hash = $1, password_reset_token = NULL, password_reset_expires = NULL WHERE id = $2',
+      [passwordHash, user.id]
+    );
+
+    // Log activity
+    await logActivity({
+      user_id: user.id,
+      user_name: user.name,
+      action: 'password_reset_completed',
+      entity_type: 'user',
+      entity_id: user.id,
+      details: { email: user.email },
+      ip_address: req.ip
+    });
+
+    res.json({ message: 'Password reset successful' });
+  } catch (err) { next(err); }
+}
+
+// POST /api/auth/change-password (for logged-in users)
+export async function changePassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Current and new password are required' });
+    if (newPassword.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters' });
+
+    const userResult = await query('SELECT id, name, email, password_hash FROM users WHERE id = $1', [req.user.userId]);
+    if (!userResult.rows[0]) return res.status(404).json({ error: 'User not found' });
+
+    const user = userResult.rows[0];
+    const valid = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!valid) return res.status(401).json({ error: 'Current password is incorrect' });
+
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+    await query('UPDATE users SET password_hash = $1 WHERE id = $2', [newPasswordHash, user.id]);
+
+    // Log activity
+    await logActivity({
+      user_id: user.id,
+      user_name: user.name,
+      action: 'password_changed',
+      entity_type: 'user',
+      entity_id: user.id,
+      details: { email: user.email },
+      ip_address: req.ip
+    });
+
+    res.json({ message: 'Password changed successfully' });
   } catch (err) { next(err); }
 }
