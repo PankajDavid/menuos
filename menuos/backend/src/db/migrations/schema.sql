@@ -5,7 +5,14 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ── RESTAURANTS ───────────────────────────────────────────────────────────
 DO $$ BEGIN
-    CREATE TYPE subscription_plan AS ENUM ('free', 'basic', 'pro');
+    CREATE TYPE subscription_plan AS ENUM ('free', 'basic', 'pro', 'premium');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- Add 'premium' to existing ENUM if it doesn't exist
+DO $$
+BEGIN
+    ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'premium';
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
