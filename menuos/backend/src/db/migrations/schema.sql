@@ -384,6 +384,39 @@ VALUES
   ('Welcome to MenuOS!', 'Thank you for using MenuOS. We''re constantly improving to serve you better.', 'success', 'all', TRUE)
 ON CONFLICT DO NOTHING;
 
+-- ── SUPPORT TICKETS ───────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS support_tickets (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  ticket_number         VARCHAR(20) UNIQUE NOT NULL,
+  user_id               UUID REFERENCES users(id) ON DELETE SET NULL,
+  restaurant_id         UUID REFERENCES restaurants(id) ON DELETE SET NULL,
+  subject               VARCHAR(255) NOT NULL,
+  description           TEXT NOT NULL,
+  category              VARCHAR(50) DEFAULT 'general', -- general, billing, technical, feature_request, bug
+  priority              VARCHAR(20) DEFAULT 'medium', -- low, medium, high, urgent
+  status                VARCHAR(20) DEFAULT 'open', -- open, in_progress, waiting, resolved, closed
+  assigned_to           UUID REFERENCES users(id) ON DELETE SET NULL,
+  resolution_notes      TEXT,
+  resolved_at           TIMESTAMPTZ,
+  created_at            TIMESTAMPTZ DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Support ticket messages/replies
+CREATE TABLE IF NOT EXISTS support_messages (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  ticket_id             UUID REFERENCES support_tickets(id) ON DELETE CASCADE,
+  user_id               UUID REFERENCES users(id) ON DELETE SET NULL,
+  message               TEXT NOT NULL,
+  is_internal           BOOLEAN DEFAULT FALSE, -- internal notes vs customer-facing
+  created_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create index for faster queries
+CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets(status);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_user ON support_tickets(user_id);
+CREATE INDEX IF NOT EXISTS idx_support_messages_ticket ON support_messages(ticket_id);
+
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
 INSERT INTO users (restaurant_id, name, email, password_hash, role)

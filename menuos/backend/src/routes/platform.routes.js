@@ -6,6 +6,7 @@ import { getPlanLimits, updatePlanLimits } from '../controllers/planLimits.contr
 import { getFeatureFlags, updateFeatureFlag } from '../controllers/featureFlags.controller.js';
 import { getEmailTemplates, getEmailTemplate, updateEmailTemplate, previewEmailTemplate, sendTestEmail } from '../controllers/emailTemplates.controller.js';
 import { getAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement } from '../controllers/announcements.controller.js';
+import { getSupportTickets, updateTicket, getTicketStats } from '../controllers/supportTickets.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 
 const router = Router();
@@ -33,6 +34,9 @@ router.get('/announcements', getAnnouncements);
 router.post('/announcements', createAnnouncement);
 router.patch('/announcements/:id', updateAnnouncement);
 router.delete('/announcements/:id', deleteAnnouncement);
+router.get('/support-tickets', getSupportTickets);
+router.get('/support-tickets/stats', getTicketStats);
+router.patch('/support-tickets/:id', updateTicket);
 router.patch('/restaurants/:id/plan', updatePlan);
 router.patch('/restaurants/:id/toggle', toggleRestaurant);
 router.patch('/users/:id/role', updateUserRole);

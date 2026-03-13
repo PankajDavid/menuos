@@ -68,6 +68,10 @@ export const platformApi = {
   createAnnouncement: (data) => api.post('/api/platform/announcements', data).then(r => r.data),
   updateAnnouncement: (id, data) => api.patch(`/api/platform/announcements/${id}`, data).then(r => r.data),
   deleteAnnouncement: (id) => api.delete(`/api/platform/announcements/${id}`).then(r => r.data),
+  // Support Tickets (Platform Admin)
+  getSupportTickets: (params) => api.get('/api/platform/support-tickets', { params }).then(r => r.data),
+  getTicketStats: () => api.get('/api/platform/support-tickets/stats').then(r => r.data),
+  updateTicket: (id, data) => api.patch(`/api/platform/support-tickets/${id}`, data).then(r => r.data),
 };
 
 export const billingApi = {
@@ -91,4 +95,9 @@ export const authApi = {
   resetPassword: (token, password) => api.post('/api/auth/reset-password', { token, password }).then(r => r.data),
   changePassword: (currentPassword, newPassword) => api.post('/api/auth/change-password', { currentPassword, newPassword }).then(r => r.data),
   getAnnouncements: () => api.get('/api/auth/announcements').then(r => r.data),
+  // Support Tickets (User)
+  getUserTickets: () => api.get('/api/auth/support-tickets').then(r => r.data),
+  createTicket: (data) => api.post('/api/auth/support-tickets', data).then(r => r.data),
+  getTicket: (id) => api.get(`/api/auth/support-tickets/${id}`).then(r => r.data),
+  addMessage: (id, message) => api.post(`/api/auth/support-tickets/${id}/messages`, { message }).then(r => r.data),
 };
