@@ -112,8 +112,8 @@ export default function AdminDashboard() {
     refetchInterval: 60000,
   });
 
-  // Use the current window location to build the menu URL
-  const menuUrl = `${window.location.origin}/r/${slug}/menu`;
+  // Use backend URL for QR code (more reliable on mobile networks)
+  const menuUrl = `https://menuos-production.up.railway.app/r/${slug}/menu`;
 
   return (
     <div style={{ padding: 32 }}>
