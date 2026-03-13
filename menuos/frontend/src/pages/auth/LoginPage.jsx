@@ -6,6 +6,8 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showRoleChoice, setShowRoleChoice] = useState(false);
+  const [userData, setUserData] = useState(null);
   const login = useAuthStore(s => s.login);
   const navigate = useNavigate();
 
@@ -14,13 +16,43 @@ export default function LoginPage() {
     setError(''); setLoading(true);
     try {
       const user = await login(form.email, form.password);
-      if (user.role === 'platform_admin') return navigate('/platform-admin');
+      if (user.role === 'platform_admin') {
+        setUserData(user);
+        setShowRoleChoice(true);
+        setLoading(false);
+        return;
+      }
       if (user.role === 'kitchen') return navigate(`/r/${user.restaurant_slug}/kitchen`);
       navigate(`/r/${user.restaurant_slug}/admin`);
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');
     } finally { setLoading(false); }
   };
+
+  const handleRoleChoice = (destination) => {
+    if (destination === 'platform') navigate('/platform');
+    else navigate(`/r/${userData.restaurant_slug}/admin`);
+  };
+
+  if (showRoleChoice && userData) {
+    return (
+      <div style={S.page}>
+        <div style={S.card}>
+          <div style={S.logo}>🍽 MenuOS</div>
+          <h1 style={S.title}>Welcome, {userData.name}</h1>
+          <p style={S.sub}>You have platform admin access. Choose where to go:</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <button onClick={() => handleRoleChoice('restaurant')} style={{ ...S.choiceBtn, background: '#C8A84B' }}>
+              🏪 My Restaurant Dashboard
+            </button>
+            <button onClick={() => handleRoleChoice('platform')} style={{ ...S.choiceBtn, background: '#7C3AED' }}>
+              ⚡ Platform Admin Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={S.page}>
@@ -60,4 +92,5 @@ const S = {
   input: { padding: '10px 14px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 15, outline: 'none' },
   btn: { marginTop: 20, padding: '12px', background: '#C8A84B', color: '#fff', border: 'none', borderRadius: 8, fontSize: 16, fontWeight: 600 },
   foot: { textAlign: 'center', marginTop: 20, fontSize: 14, color: '#64748b' },
+  choiceBtn: { padding: '16px', color: '#fff', border: 'none', borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: 'pointer' },
 };
