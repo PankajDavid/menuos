@@ -11,7 +11,7 @@ export default function PlatformAdmin() {
   const navigate = useNavigate();
 
   const { data: analytics } = useQuery({ queryKey: ['platform-analytics'], queryFn: platformApi.getAnalytics });
-  const { data: restaurants = [] } = useQuery({ queryKey: ['platform-restaurants'], queryFn: platformApi.getAllRestaurants });
+  const { data: restaurants = [] } = useQuery({ queryKey: ['platform-restaurants'], queryFn: platformApi.getRestaurants });
 
   const planMutation = useMutation({
     mutationFn: ({ id, plan }) => platformApi.updatePlan(id, plan),
