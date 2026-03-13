@@ -11,6 +11,7 @@ export default function PlatformAdmin() {
   const { logout } = useAuthStore();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('restaurants');
+  const [userFilter, setUserFilter] = useState({ search: '', role: '', status: '' });
 
   const { data: analytics } = useQuery({ queryKey: ['platform-analytics'], queryFn: platformApi.getAnalytics });
   const { data: restaurants = [] } = useQuery({ queryKey: ['platform-restaurants'], queryFn: platformApi.getRestaurants });
@@ -325,7 +326,42 @@ export default function PlatformAdmin() {
         {activeTab === 'users' && (
         <div style={{ background: '#1e293b', borderRadius: 12, overflow: 'hidden' }}>
           <div style={{ padding: '20px 24px', borderBottom: '1px solid #334155' }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700 }}>All Users ({users.length})</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>All Users ({users.length})</h2>
+            {/* Filters */}
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={userFilter.search}
+                onChange={(e) => setUserFilter({ ...userFilter, search: e.target.value })}
+                style={{ padding: '8px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 6, color: '#e2e8f0', fontSize: 14, minWidth: 200 }}
+              />
+              <select
+                value={userFilter.role}
+                onChange={(e) => setUserFilter({ ...userFilter, role: e.target.value })}
+                style={{ padding: '8px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 6, color: '#e2e8f0', fontSize: 14 }}
+              >
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="staff">Staff</option>
+                <option value="kitchen">Kitchen</option>
+              </select>
+              <select
+                value={userFilter.status}
+                onChange={(e) => setUserFilter({ ...userFilter, status: e.target.value })}
+                style={{ padding: '8px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 6, color: '#e2e8f0', fontSize: 14 }}
+              >
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <button
+                onClick={() => setUserFilter({ search: '', role: '', status: '' })}
+                style={{ padding: '8px 16px', background: '#334155', border: 'none', borderRadius: 6, color: '#e2e8f0', fontSize: 14, cursor: 'pointer' }}
+              >
+                Clear
+              </button>
+            </div>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -337,7 +373,15 @@ export default function PlatformAdmin() {
                 </tr>
               </thead>
               <tbody>
-                {users.map(u => (
+                {users.filter(u => {
+                  const matchesSearch = !userFilter.search || 
+                    u.name?.toLowerCase().includes(userFilter.search.toLowerCase()) ||
+                    u.email?.toLowerCase().includes(userFilter.search.toLowerCase()) ||
+                    u.restaurant_name?.toLowerCase().includes(userFilter.search.toLowerCase());
+                  const matchesRole = !userFilter.role || u.role === userFilter.role;
+                  const matchesStatus = !userFilter.status || (userFilter.status === 'active' ? u.is_active : !u.is_active);
+                  return matchesSearch && matchesRole && matchesStatus;
+                }).map(u => (
                   <tr key={u.id} style={{ borderBottom: '1px solid #1e293b' }}>
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ fontWeight: 600 }}>{u.name}</div>
