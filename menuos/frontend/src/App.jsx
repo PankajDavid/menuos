@@ -16,6 +16,8 @@ import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import MenuManager from './pages/admin/MenuManager.jsx';
 import OrdersPanel from './pages/admin/OrdersPanel.jsx';
 import TableManager from './pages/admin/TableManager.jsx';
+import RestaurantSettings from './pages/admin/RestaurantSettings.jsx';
+import StaffManagement from './pages/admin/StaffManagement.jsx';
 import PlatformAdmin from './pages/platform/PlatformAdmin.jsx';
 
 export default function App() {
@@ -46,6 +48,8 @@ export default function App() {
           <Route path="menu" element={<MenuManager />} />
           <Route path="orders" element={<OrdersPanel />} />
           <Route path="tables" element={<TableManager />} />
+          <Route path="settings" element={<RestaurantSettings />} />
+          <Route path="staff" element={<StaffManagement />} />
         </Route>
       </Route>
 

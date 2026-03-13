@@ -5,7 +5,7 @@ import { orderApi, restaurantApi } from '../../api/queries.js';
 
 const STATUS_COLORS = { pending:'#2563EB', preparing:'#D97706', ready:'#16A34A', served:'#64748b', cancelled:'#dc2626' };
 
-function PrintSlip({ order, restaurantName }) {
+function PrintSlip({ order, restaurant }) {
   const slipRef = useRef();
   
   const handlePrint = () => {
@@ -16,26 +16,33 @@ function PrintSlip({ order, restaurantName }) {
           <title>Order #${order.order_number}</title>
           <style>
             @media print {
-              body { margin: 0; padding: 10px; font-family: 'Courier New', monospace; font-size: 12px; }
-              .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
-              .header h2 { margin: 0; font-size: 16px; }
-              .header p { margin: 5px 0; }
-              .info { margin: 10px 0; }
-              .info-row { display: flex; justify-content: space-between; margin: 5px 0; }
-              .items { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; margin: 10px 0; }
-              .item { display: flex; justify-content: space-between; margin: 5px 0; }
+              @page { size: A5; margin: 10mm; }
+              body { margin: 0; padding: 8px; font-family: 'Courier New', monospace; font-size: 11px; }
+              .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+              .header h2 { margin: 0; font-size: 15px; font-weight: bold; }
+              .header .gst { font-size: 9px; color: #666; margin: 3px 0; }
+              .header p { margin: 3px 0; font-size: 10px; }
+              .info { margin: 8px 0; }
+              .info-row { display: flex; justify-content: space-between; margin: 4px 0; font-size: 11px; }
+              .items { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 8px 0; margin: 8px 0; }
+              .item { display: flex; justify-content: space-between; margin: 4px 0; font-size: 11px; }
               .item-name { flex: 1; }
               .item-qty { width: 30px; text-align: center; }
               .item-price { width: 60px; text-align: right; }
-              .total { font-weight: bold; font-size: 14px; text-align: right; margin-top: 10px; }
-              .footer { text-align: center; margin-top: 20px; font-size: 10px; border-top: 1px dashed #000; padding-top: 10px; }
-              .notes { background: #fff3cd; padding: 5px; margin: 10px 0; font-style: italic; }
+              .total { font-weight: bold; font-size: 13px; text-align: right; margin-top: 8px; }
+              .tax-note { text-align: center; font-size: 10px; color: #666; margin: 8px 0; font-style: italic; }
+              .footer { text-align: center; margin-top: 15px; font-size: 9px; border-top: 1px dashed #000; padding-top: 8px; }
+              .notes { background: #fff3cd; padding: 5px; margin: 8px 0; font-style: italic; font-size: 10px; }
             }
           </style>
         </head>
         <body>
           <div class="header">
-            <h2>${restaurantName || 'Restaurant'}</h2>
+            ${restaurant?.logo_url ? `<img src="${restaurant.logo_url}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-bottom: 5px;" />` : ''}
+            <h2>${restaurant?.name || 'Restaurant'}</h2>
+            ${restaurant?.gst_number ? `<div class="gst">GST: ${restaurant.gst_number}</div>` : ''}
+            ${restaurant?.address ? `<p style="font-size: 9px; color: #666;">${restaurant.address}</p>` : ''}
+            ${restaurant?.phone ? `<p style="font-size: 9px;">📞 ${restaurant.phone}</p>` : ''}
             <p>Order #${order.order_number}</p>
             <p>${new Date(order.created_at).toLocaleString()}</p>
           </div>
@@ -60,6 +67,8 @@ function PrintSlip({ order, restaurantName }) {
           <div class="total">
             Total: ₹${parseFloat(order.total_amount).toFixed(2)}
           </div>
+          
+          <div class="tax-note">* All taxes inclusive</div>
           
           ${order.notes ? `<div class="notes">Notes: ${order.notes}</div>` : ''}
           
@@ -148,7 +157,7 @@ export default function OrdersPanel() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: '#94a3b8', fontSize: 13 }}>{new Date(order.created_at).toLocaleString()}</span>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <PrintSlip order={order} restaurantName={restaurant?.name} />
+                  <PrintSlip order={order} restaurant={restaurant} />
                   {!['served','cancelled'].includes(order.order_status) && (
                     <select value={order.order_status}
                       onChange={e => updateMutation.mutate({ id: order.id, status: e.target.value })}

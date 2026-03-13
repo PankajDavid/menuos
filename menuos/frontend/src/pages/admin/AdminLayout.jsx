@@ -6,6 +6,8 @@ const NAV = [
   { to: 'menu', label: '🍽 Menu' },
   { to: 'orders', label: '📋 Orders' },
   { to: 'tables', label: '🪑 Tables & QR' },
+  { to: 'staff', label: '👥 Staff' },
+  { to: 'settings', label: '⚙️ Settings' },
 ];
 
 export default function AdminLayout() {
