@@ -596,6 +596,31 @@ CREATE INDEX IF NOT EXISTS idx_conversations_priority ON conversations(priority)
 CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
 
+-- ── FAILED PAYMENTS ───────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS failed_payments (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  restaurant_id         UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+  amount                DECIMAL(10,2) NOT NULL,
+  currency              VARCHAR(3) DEFAULT 'INR',
+  plan                  subscription_plan NOT NULL,
+  failure_reason        VARCHAR(200),
+  error_code            VARCHAR(50),
+  retry_count           INTEGER DEFAULT 0,
+  max_retries           INTEGER DEFAULT 3,
+  next_retry_at         TIMESTAMPTZ,
+  status                VARCHAR(20) DEFAULT 'pending', -- pending, resolved, cancelled, dunning
+  resolved_at           TIMESTAMPTZ,
+  resolved_by           UUID REFERENCES users(id),
+  resolution_notes      TEXT,
+  created_at            TIMESTAMPTZ DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_failed_payments_restaurant ON failed_payments(restaurant_id);
+CREATE INDEX IF NOT EXISTS idx_failed_payments_status ON failed_payments(status);
+CREATE INDEX IF NOT EXISTS idx_failed_payments_created ON failed_payments(created_at);
+
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
 INSERT INTO users (restaurant_id, name, email, password_hash, role)

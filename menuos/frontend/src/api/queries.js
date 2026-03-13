@@ -101,6 +101,14 @@ export const platformApi = {
   createConversation: (data) => api.post('/api/platform/conversations', data).then(r => r.data),
   sendMessage: (id, content) => api.post(`/api/platform/conversations/${id}/messages`, { content }).then(r => r.data),
   updateConversation: (id, data) => api.patch(`/api/platform/conversations/${id}`, data).then(r => r.data),
+  // Failed Payments (Platform Admin)
+  getFailedPayments: (params) => api.get('/api/platform/failed-payments', { params }).then(r => r.data),
+  getFailedPaymentStats: (days) => api.get('/api/platform/failed-payments/stats', { params: { days } }).then(r => r.data),
+  getDunningReport: () => api.get('/api/platform/failed-payments/dunning-report').then(r => r.data),
+  retryFailedPayment: (id) => api.post(`/api/platform/failed-payments/${id}/retry`).then(r => r.data),
+  resolveFailedPayment: (id, notes) => api.post(`/api/platform/failed-payments/${id}/resolve`, { notes }).then(r => r.data),
+  cancelFailedPayment: (id, notes) => api.post(`/api/platform/failed-payments/${id}/cancel`, { notes }).then(r => r.data),
+  moveToDunning: (id) => api.post(`/api/platform/failed-payments/${id}/dunning`).then(r => r.data),
 };
 
 export const billingApi = {

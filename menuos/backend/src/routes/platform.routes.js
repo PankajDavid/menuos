@@ -12,6 +12,7 @@ import { getTrials, getTrialStats, startTrial, convertTrial, extendTrial, getTri
 import { getRevenueAnalytics, getMrrHistory, getUpgradeAnalysis, recordRevenueEvent, createMrrSnapshot } from '../controllers/revenueAnalytics.controller.js';
 import { getReferrals, getReferralStats, markReferralConverted, payReferralReward, updateReferralCode } from '../controllers/referralProgram.controller.js';
 import { getConversations, getConversation, sendPlatformMessage, updateConversation, getMessagingStats, createPlatformConversation } from '../controllers/messaging.controller.js';
+import { getFailedPayments, getFailedPaymentStats, recordFailedPayment, retryFailedPayment, resolveFailedPayment, cancelFailedPayment, moveToDunning, getDunningReport } from '../controllers/failedPayments.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 
 const router = Router();
@@ -69,6 +70,14 @@ router.get('/conversations/:id', getConversation);
 router.post('/conversations', createPlatformConversation);
 router.post('/conversations/:id/messages', sendPlatformMessage);
 router.patch('/conversations/:id', updateConversation);
+router.get('/failed-payments', getFailedPayments);
+router.get('/failed-payments/stats', getFailedPaymentStats);
+router.get('/failed-payments/dunning-report', getDunningReport);
+router.post('/failed-payments', recordFailedPayment);
+router.post('/failed-payments/:id/retry', retryFailedPayment);
+router.post('/failed-payments/:id/resolve', resolveFailedPayment);
+router.post('/failed-payments/:id/cancel', cancelFailedPayment);
+router.post('/failed-payments/:id/dunning', moveToDunning);
 router.patch('/restaurants/:id/plan', updatePlan);
 router.patch('/restaurants/:id/toggle', toggleRestaurant);
 router.patch('/users/:id/role', updateUserRole);
