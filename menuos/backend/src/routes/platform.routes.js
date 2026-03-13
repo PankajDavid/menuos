@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllRestaurants, getPlatformAnalytics, updatePlan, toggleRestaurant, updateUserRole, getAllUsers, exportRestaurants, exportOrders, getPopularItems }
+import { getAllRestaurants, getPlatformAnalytics, updatePlan, toggleRestaurant, updateUserRole, getAllUsers, exportRestaurants, exportOrders, getPopularItems, bulkUpdateUserRoles, bulkActivateUsers }
   from '../controllers/platform.controller.js';
 import { getActivityLogs, getActivitySummary } from '../controllers/activity.controller.js';
 import { getPlanLimits, updatePlanLimits } from '../controllers/planLimits.controller.js';
@@ -21,5 +21,7 @@ router.get('/popular-items', getPopularItems);
 router.patch('/restaurants/:id/plan', updatePlan);
 router.patch('/restaurants/:id/toggle', toggleRestaurant);
 router.patch('/users/:id/role', updateUserRole);
+router.post('/users/bulk-update-role', bulkUpdateUserRoles);
+router.post('/users/bulk-activate', bulkActivateUsers);
 
 export default router;

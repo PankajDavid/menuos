@@ -13,6 +13,7 @@ export default function PlatformAdmin() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('restaurants');
   const [userFilter, setUserFilter] = useState({ search: '', role: '', status: '' });
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const [showPlanLimits, setShowPlanLimits] = useState(false);
 
   const { data: analytics } = useQuery({ queryKey: ['platform-analytics'], queryFn: platformApi.getAnalytics });
@@ -47,6 +48,22 @@ export default function PlatformAdmin() {
   const checkSubscriptionsMutation = useMutation({
     mutationFn: () => platformApi.checkSubscriptions(),
     onSuccess: () => qc.invalidateQueries(['platform-restaurants', 'platform-analytics']),
+  });
+
+  const bulkUpdateRoleMutation = useMutation({
+    mutationFn: ({ userIds, role }) => platformApi.bulkUpdateUserRoles(userIds, role),
+    onSuccess: () => {
+      qc.invalidateQueries(['platform-users']);
+      setSelectedUsers([]);
+    },
+  });
+
+  const bulkActivateMutation = useMutation({
+    mutationFn: ({ userIds, isActive }) => platformApi.bulkActivateUsers(userIds, isActive),
+    onSuccess: () => {
+      qc.invalidateQueries(['platform-users']);
+      setSelectedUsers([]);
+    },
   });
 
   const handleExport = async (type) => {
@@ -401,11 +418,77 @@ export default function PlatformAdmin() {
                 Clear
               </button>
             </div>
+            {/* Bulk Actions */}
+            {selectedUsers.length > 0 && (
+              <div style={{ display: 'flex', gap: 12, marginTop: 16, padding: '12px 16px', background: '#0f172a', borderRadius: 8, alignItems: 'center' }}>
+                <span style={{ color: '#94a3b8', fontSize: 14 }}>{selectedUsers.length} selected</span>
+                <select
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      bulkUpdateRoleMutation.mutate({ userIds: selectedUsers, role: e.target.value });
+                      e.target.value = '';
+                    }
+                  }}
+                  style={{ padding: '6px 12px', background: '#334155', border: 'none', borderRadius: 6, color: '#e2e8f0', fontSize: 13 }}
+                >
+                  <option value="">Change Role to...</option>
+                  <option value="admin">Admin</option>
+                  <option value="staff">Staff</option>
+                  <option value="kitchen">Kitchen</option>
+                </select>
+                <button
+                  onClick={() => bulkActivateMutation.mutate({ userIds: selectedUsers, isActive: true })}
+                  disabled={bulkActivateMutation.isPending}
+                  style={{ padding: '6px 12px', background: '#16A34A', border: 'none', borderRadius: 6, color: '#fff', fontSize: 13, cursor: 'pointer' }}
+                >
+                  Activate
+                </button>
+                <button
+                  onClick={() => bulkActivateMutation.mutate({ userIds: selectedUsers, isActive: false })}
+                  disabled={bulkActivateMutation.isPending}
+                  style={{ padding: '6px 12px', background: '#dc2626', border: 'none', borderRadius: 6, color: '#fff', fontSize: 13, cursor: 'pointer' }}
+                >
+                  Deactivate
+                </button>
+                <button
+                  onClick={() => setSelectedUsers([])}
+                  style={{ padding: '6px 12px', background: 'transparent', border: '1px solid #334155', borderRadius: 6, color: '#94a3b8', fontSize: 13, cursor: 'pointer' }}
+                >
+                  Clear Selection
+                </button>
+              </div>
+            )}
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #334155' }}>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#64748b' }}>
+                    <input
+                      type="checkbox"
+                      onChange={(e) => {
+                        const filteredUsers = users.filter(u => {
+                          const matchesSearch = !userFilter.search || 
+                            u.name?.toLowerCase().includes(userFilter.search.toLowerCase()) ||
+                            u.email?.toLowerCase().includes(userFilter.search.toLowerCase()) ||
+                            u.restaurant_name?.toLowerCase().includes(userFilter.search.toLowerCase());
+                          const matchesRole = !userFilter.role || u.role === userFilter.role;
+                          const matchesStatus = !userFilter.status || (userFilter.status === 'active' ? u.is_active : !u.is_active);
+                          return matchesSearch && matchesRole && matchesStatus;
+                        });
+                        setSelectedUsers(e.target.checked ? filteredUsers.map(u => u.id) : []);
+                      }}
+                      checked={selectedUsers.length > 0 && users.filter(u => {
+                        const matchesSearch = !userFilter.search || 
+                          u.name?.toLowerCase().includes(userFilter.search.toLowerCase()) ||
+                          u.email?.toLowerCase().includes(userFilter.search.toLowerCase()) ||
+                          u.restaurant_name?.toLowerCase().includes(userFilter.search.toLowerCase());
+                        const matchesRole = !userFilter.role || u.role === userFilter.role;
+                        const matchesStatus = !userFilter.status || (userFilter.status === 'active' ? u.is_active : !u.is_active);
+                        return matchesSearch && matchesRole && matchesStatus;
+                      }).length === selectedUsers.length}
+                    />
+                  </th>
                   {['User', 'Restaurant', 'Role', 'Status', 'Last Login', 'Actions'].map(h => (
                     <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>{h}</th>
                   ))}
@@ -422,6 +505,19 @@ export default function PlatformAdmin() {
                   return matchesSearch && matchesRole && matchesStatus;
                 }).map(u => (
                   <tr key={u.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                    <td style={{ padding: '14px 16px' }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(u.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedUsers([...selectedUsers, u.id]);
+                          } else {
+                            setSelectedUsers(selectedUsers.filter(id => id !== u.id));
+                          }
+                        }}
+                      />
+                    </td>
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ fontWeight: 600 }}>{u.name}</div>
                       <div style={{ color: '#64748b', fontSize: 12 }}>{u.email}</div>

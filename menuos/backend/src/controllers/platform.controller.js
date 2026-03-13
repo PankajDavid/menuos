@@ -106,6 +106,64 @@ export async function updateUserRole(req, res, next) {
   } catch (err) { next(err); }
 }
 
+// POST /api/platform/users/bulk-update-role - Bulk role update
+export async function bulkUpdateUserRoles(req, res, next) {
+  try {
+    const { userIds, role } = req.body;
+    
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ error: 'userIds array is required' });
+    }
+    if (!role) {
+      return res.status(400).json({ error: 'role is required' });
+    }
+
+    const validRoles = ['admin', 'staff', 'kitchen'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: 'Invalid role for bulk update' });
+    }
+
+    // Prevent changing platform_admin roles
+    const result = await query(
+      `UPDATE users SET role = $1 
+       WHERE id = ANY($2::uuid[]) 
+       AND role != 'platform_admin'
+       RETURNING id, name, email, role`,
+      [role, userIds]
+    );
+
+    res.json({
+      updated: result.rows.length,
+      users: result.rows
+    });
+  } catch (err) { next(err); }
+}
+
+// POST /api/platform/users/bulk-activate - Bulk activate/deactivate
+export async function bulkActivateUsers(req, res, next) {
+  try {
+    const { userIds, isActive } = req.body;
+    
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ error: 'userIds array is required' });
+    }
+
+    // Prevent deactivating platform_admin users
+    const result = await query(
+      `UPDATE users SET is_active = $1 
+       WHERE id = ANY($2::uuid[]) 
+       AND role != 'platform_admin'
+       RETURNING id, name, email, is_active`,
+      [isActive, userIds]
+    );
+
+    res.json({
+      updated: result.rows.length,
+      users: result.rows
+    });
+  } catch (err) { next(err); }
+}
+
 // PATCH /api/platform/restaurants/:id/toggle
 export async function toggleRestaurant(req, res, next) {
   try {

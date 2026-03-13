@@ -36,6 +36,8 @@ export const platformApi = {
   updatePlan: (id, plan) => api.patch(`/api/platform/restaurants/${id}/plan`, { plan }).then(r => r.data),
   toggle: (id) => api.patch(`/api/platform/restaurants/${id}/toggle`).then(r => r.data),
   updateUserRole: (id, role) => api.patch(`/api/platform/users/${id}/role`, { role }).then(r => r.data),
+  bulkUpdateUserRoles: (userIds, role) => api.post('/api/platform/users/bulk-update-role', { userIds, role }).then(r => r.data),
+  bulkActivateUsers: (userIds, isActive) => api.post('/api/platform/users/bulk-activate', { userIds, isActive }).then(r => r.data),
   // Billing
   getInvoices: () => api.get('/api/platform/invoices').then(r => r.data),
   createInvoice: (data) => api.post('/api/platform/invoices', data).then(r => r.data),
