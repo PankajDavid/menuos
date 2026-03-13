@@ -250,6 +250,38 @@ CREATE TABLE IF NOT EXISTS activity_logs (
   created_at            TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- ── PLAN LIMITS CONFIGURATION ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS plan_limits (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  plan                  subscription_plan UNIQUE NOT NULL,
+  max_menu_items        INTEGER DEFAULT 50,
+  max_tables            INTEGER DEFAULT 10,
+  max_staff_users       INTEGER DEFAULT 3,
+  max_photos_per_month  INTEGER DEFAULT 0,
+  max_videos_per_month  INTEGER DEFAULT 0,
+  allows_custom_domain  BOOLEAN DEFAULT FALSE,
+  allows_white_label    BOOLEAN DEFAULT FALSE,
+  allows_api_access     BOOLEAN DEFAULT FALSE,
+  support_level         VARCHAR(20) DEFAULT 'basic', -- basic, priority, dedicated
+  monthly_price         DECIMAL(10,2) DEFAULT 0,
+  yearly_price          DECIMAL(10,2) DEFAULT 0,
+  is_active             BOOLEAN DEFAULT TRUE,
+  updated_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Insert default plan limits
+INSERT INTO plan_limits (plan, max_menu_items, max_tables, max_staff_users, max_photos_per_month, max_videos_per_month, allows_custom_domain, allows_white_label, allows_api_access, support_level, monthly_price, yearly_price)
+VALUES 
+  ('free', 50, 10, 2, 0, 0, FALSE, FALSE, FALSE, 'basic', 0, 0),
+  ('basic', 999999, 50, 5, 0, 0, FALSE, FALSE, FALSE, 'basic', 999, 9990),
+  ('pro', 999999, 100, 10, 100, 0, TRUE, FALSE, FALSE, 'priority', 2499, 24990),
+  ('premium', 999999, 999999, 999999, 999999, 100, TRUE, TRUE, TRUE, 'dedicated', 4999, 49990)
+ON CONFLICT (plan) DO UPDATE SET
+  max_menu_items = EXCLUDED.max_menu_items,
+  max_tables = EXCLUDED.max_tables,
+  max_staff_users = EXCLUDED.max_staff_users,
+  updated_at = NOW();
+
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
 INSERT INTO users (restaurant_id, name, email, password_hash, role)

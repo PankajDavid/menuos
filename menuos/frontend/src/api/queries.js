@@ -46,10 +46,18 @@ export const platformApi = {
   // Activity Logs
   getActivityLogs: (params) => api.get('/api/platform/activity-logs', { params }).then(r => r.data),
   getActivitySummary: () => api.get('/api/platform/activity-logs/summary').then(r => r.data),
+  // Plan Limits
+  getPlanLimits: () => api.get('/api/platform/plan-limits').then(r => r.data),
+  updatePlanLimits: (plan, data) => api.patch(`/api/platform/plan-limits/${plan}`, data).then(r => r.data),
 };
 
 export const billingApi = {
   getInvoices: (slug) => api.get(`/api/restaurants/${slug}/invoices`).then(r => r.data),
   getNotifications: (slug) => api.get(`/api/restaurants/${slug}/notifications`).then(r => r.data),
   markNotificationRead: (slug, id) => api.patch(`/api/restaurants/${slug}/notifications/${id}/read`).then(r => r.data),
+};
+
+export const limitsApi = {
+  getLimits: (slug) => api.get(`/api/restaurants/${slug}/limits`).then(r => r.data),
+  checkLimit: (slug, resource) => api.get(`/api/restaurants/${slug}/limits/${resource}`).then(r => r.data),
 };
