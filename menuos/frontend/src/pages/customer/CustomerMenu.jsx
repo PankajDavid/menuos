@@ -29,27 +29,19 @@ export default function CustomerMenu() {
   const [activeFilters, setActiveFilters] = useState(new Set());
   const [addedId, setAddedId] = useState(null);
   const [playingVideo, setPlayingVideo] = useState(null);
-  const [debugInfo, setDebugInfo] = useState('');
   const addItem = useCartStore(s => s.addItem);
   const items = useCartStore(s => s.items);
   const count = items.reduce((s, i) => s + i.qty, 0);
   const total = items.reduce((s, i) => s + parseFloat(i.price) * i.qty, 0);
 
-  const { data: restaurant, error: restaurantError } = useQuery({ 
+  const { data: restaurant } = useQuery({ 
     queryKey: ['restaurant', slug], 
-    queryFn: () => restaurantApi.get(slug),
-    onError: (err) => setDebugInfo(prev => prev + 'Restaurant Error: ' + err.message + '; ')
+    queryFn: () => restaurantApi.get(slug)
   });
-  const { data: menu = [], isLoading, error: menuError } = useQuery({ 
+  const { data: menu = [], isLoading } = useQuery({ 
     queryKey: ['menu', slug], 
-    queryFn: () => menuApi.getPublic(slug),
-    onError: (err) => setDebugInfo(prev => prev + 'Menu Error: ' + err.message + '; ')
+    queryFn: () => menuApi.getPublic(slug)
   });
-
-  // Debug logging
-  useEffect(() => {
-    setDebugInfo(prev => prev + 'Slug: ' + slug + '; Window: ' + window.innerWidth + 'x' + window.innerHeight + '; ');
-  }, []);
 
   const categories = ['All', ...new Set(menu.map(i => i.category))];
   const filters = ['vegan', 'vegetarian', 'gluten-free', 'spicy', 'nut-free'];
@@ -74,13 +66,6 @@ export default function CustomerMenu() {
     <>
       <style>{FONTS}</style>
       <div style={{ fontFamily: "'Crimson Text', serif", background: C.bg, minHeight: '100vh', color: C.cream }}>
-
-        {/* Debug Info - Remove after testing */}
-        {debugInfo && (
-          <div style={{ background: '#ffeb3b', color: '#000', padding: '10px', fontSize: '12px', wordBreak: 'break-all' }}>
-            <strong>Debug:</strong> {debugInfo}
-          </div>
-        )}
 
         {/* Header */}
         <div style={{ textAlign: 'center', padding: '40px 20px 30px', borderBottom: `1px solid ${C.border}` }}>
