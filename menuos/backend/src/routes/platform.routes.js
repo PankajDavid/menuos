@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllRestaurants, getPlatformAnalytics, updatePlan, toggleRestaurant }
+import { getAllRestaurants, getPlatformAnalytics, updatePlan, toggleRestaurant, updateUserRole }
   from '../controllers/platform.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 
@@ -10,5 +10,6 @@ router.get('/restaurants', getAllRestaurants);
 router.get('/analytics', getPlatformAnalytics);
 router.patch('/restaurants/:id/plan', updatePlan);
 router.patch('/restaurants/:id/toggle', toggleRestaurant);
+router.patch('/users/:id/role', updateUserRole);
 
 export default router;

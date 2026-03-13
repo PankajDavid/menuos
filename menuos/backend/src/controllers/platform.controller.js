@@ -52,7 +52,7 @@ export async function getPlatformAnalytics(req, res, next) {
 export async function updatePlan(req, res, next) {
   try {
     const { plan } = req.body;
-    const validPlans = ['free', 'basic', 'pro'];
+    const validPlans = ['free', 'basic', 'pro', 'premium'];
     if (!validPlans.includes(plan)) return res.status(400).json({ error: 'Invalid plan' });
 
     const result = await query(
@@ -60,6 +60,22 @@ export async function updatePlan(req, res, next) {
       [plan, req.params.id]
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Restaurant not found' });
+    res.json(result.rows[0]);
+  } catch (err) { next(err); }
+}
+
+// PATCH /api/platform/users/:id/role
+export async function updateUserRole(req, res, next) {
+  try {
+    const { role } = req.body;
+    const validRoles = ['admin', 'staff', 'kitchen', 'platform_admin'];
+    if (!validRoles.includes(role)) return res.status(400).json({ error: 'Invalid role' });
+
+    const result = await query(
+      'UPDATE users SET role = $1 WHERE id = $2 RETURNING id, email, role',
+      [role, req.params.id]
+    );
+    if (!result.rows[0]) return res.status(404).json({ error: 'User not found' });
     res.json(result.rows[0]);
   } catch (err) { next(err); }
 }
