@@ -96,6 +96,8 @@ export default function CustomerMenu() {
               <div style={{ position: 'relative', textAlign: 'center', padding: '18px 0 8px', background: 'rgba(200,168,75,0.04)', minHeight: 100 }}>
                 {item.image_url ? (
                   <img src={item.image_url} alt={item.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }} />
+                ) : item.video_url ? (
+                  <video src={item.video_url} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }} muted />
                 ) : (
                   <span style={{ fontSize: 44 }}>🍽</span>
                 )}
