@@ -22,6 +22,7 @@ export default function PlatformAdmin() {
   const { data: discounts = [] } = useQuery({ queryKey: ['platform-discounts'], queryFn: platformApi.getDiscounts, enabled: activeTab === 'discounts' });
   const { data: activityLogs = [] } = useQuery({ queryKey: ['activity-logs'], queryFn: () => platformApi.getActivityLogs({ limit: 100 }), enabled: activeTab === 'activity' });
   const { data: activitySummary } = useQuery({ queryKey: ['activity-summary'], queryFn: platformApi.getActivitySummary, enabled: activeTab === 'activity' });
+  const { data: popularItems = [] } = useQuery({ queryKey: ['popular-items'], queryFn: platformApi.getPopularItems, enabled: activeTab === 'analytics' });
 
   const planMutation = useMutation({
     mutationFn: ({ id, plan }) => platformApi.updatePlan(id, plan),
@@ -254,6 +255,21 @@ export default function PlatformAdmin() {
             }}
           >
             📋 Activity Logs
+          </button>
+          <button
+            onClick={() => setActiveTab('analytics')}
+            style={{
+              padding: '10px 20px',
+              background: activeTab === 'analytics' ? '#C8A84B' : '#1e293b',
+              color: activeTab === 'analytics' ? '#0f172a' : '#94a3b8',
+              border: 'none',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            📊 Global Analytics
           </button>
           <button
             onClick={() => checkSubscriptionsMutation.mutate()}
@@ -594,6 +610,45 @@ export default function PlatformAdmin() {
                       <td style={{ padding: '14px 16px', color: '#64748b', fontSize: 13 }}>
                         {log.details ? JSON.stringify(log.details).slice(0, 50) + '...' : '-'}
                       </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        )}
+
+        {/* Global Analytics - Popular Items */}
+        {activeTab === 'analytics' && (
+        <div>
+          <div style={{ background: '#1e293b', borderRadius: 12, overflow: 'hidden', marginBottom: 24 }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #334155' }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700 }}>🔥 Most Popular Menu Items Globally</h2>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #334155' }}>
+                    {['Rank', 'Item', 'Restaurant', 'Category', 'Price', 'Times Ordered', 'Qty Sold'].map(h => (
+                      <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {popularItems.map((item, index) => (
+                    <tr key={item.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                      <td style={{ padding: '14px 16px', fontWeight: 700, color: '#C8A84B' }}>#{index + 1}</td>
+                      <td style={{ padding: '14px 16px', fontWeight: 600 }}>{item.name}</td>
+                      <td style={{ padding: '14px 16px', color: '#94a3b8' }}>{item.restaurant_name}</td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, background: '#334155', color: '#e2e8f0' }}>
+                          {item.category}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 16px', color: '#C8A84B', fontWeight: 600 }}>₹{item.price}</td>
+                      <td style={{ padding: '14px 16px', fontWeight: 600 }}>{item.times_ordered}</td>
+                      <td style={{ padding: '14px 16px', color: '#16A34A', fontWeight: 600 }}>{item.total_quantity_sold}</td>
                     </tr>
                   ))}
                 </tbody>

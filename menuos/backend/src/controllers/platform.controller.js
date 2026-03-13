@@ -188,3 +188,30 @@ export async function exportOrders(req, res, next) {
     res.send(csv);
   } catch (err) { next(err); }
 }
+
+// GET /api/platform/popular-items - Most popular menu items across all restaurants
+export async function getPopularItems(req, res, next) {
+  try {
+    const result = await query(`
+      SELECT 
+        mi.id,
+        mi.name,
+        mi.price,
+        mi.category,
+        r.name as restaurant_name,
+        r.slug as restaurant_slug,
+        COUNT(oi.id) as times_ordered,
+        COALESCE(SUM(oi.quantity), 0) as total_quantity_sold
+      FROM menu_items mi
+      JOIN restaurants r ON mi.restaurant_id = r.id
+      LEFT JOIN order_items oi ON mi.id = oi.menu_item_id
+      LEFT JOIN orders o ON oi.order_id = o.id AND o.payment_status = 'paid'
+      WHERE mi.is_available = TRUE
+      GROUP BY mi.id, mi.name, mi.price, mi.category, r.name, r.slug
+      ORDER BY total_quantity_sold DESC
+      LIMIT 50
+    `);
+
+    res.json(result.rows);
+  } catch (err) { next(err); }
+}

@@ -49,6 +49,8 @@ export const platformApi = {
   // Plan Limits
   getPlanLimits: () => api.get('/api/platform/plan-limits').then(r => r.data),
   updatePlanLimits: (plan, data) => api.patch(`/api/platform/plan-limits/${plan}`, data).then(r => r.data),
+  // Analytics
+  getPopularItems: () => api.get('/api/platform/popular-items').then(r => r.data),
 };
 
 export const billingApi = {
