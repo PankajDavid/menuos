@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS restaurants (
   owner_email           VARCHAR(255) UNIQUE NOT NULL,
   phone                 VARCHAR(20),
   address               TEXT,
+  gst_number            VARCHAR(50),
   logo_url              TEXT,
   subscription_plan     subscription_plan DEFAULT 'free',
   subscription_expires_at TIMESTAMPTZ,
@@ -30,6 +31,15 @@ CREATE TABLE IF NOT EXISTS restaurants (
   settings              JSONB DEFAULT '{}',
   created_at            TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Add gst_number column if it doesn't exist (for existing databases)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'restaurants' AND column_name = 'gst_number') THEN
+        ALTER TABLE restaurants ADD COLUMN gst_number VARCHAR(50);
+    END IF;
+END $$;
 
 -- ── USERS ─────────────────────────────────────────────────────────────────
 DO $$ BEGIN

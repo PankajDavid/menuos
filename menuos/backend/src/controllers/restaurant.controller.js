@@ -9,16 +9,17 @@ export async function getRestaurant(req, res) {
 // PUT /api/restaurants/:slug
 export async function updateRestaurant(req, res, next) {
   try {
-    const { name, phone, address, logo_url, settings } = req.body;
+    const { name, phone, address, gst_number, logo_url, settings } = req.body;
     const result = await query(
       `UPDATE restaurants SET
         name = COALESCE($1, name),
         phone = COALESCE($2, phone),
         address = COALESCE($3, address),
-        logo_url = COALESCE($4, logo_url),
-        settings = COALESCE($5, settings)
-       WHERE id = $6 RETURNING *`,
-      [name, phone, address, logo_url, settings ? JSON.stringify(settings) : null, req.tenant.id]
+        gst_number = COALESCE($4, gst_number),
+        logo_url = COALESCE($5, logo_url),
+        settings = COALESCE($6, settings)
+       WHERE id = $7 RETURNING *`,
+      [name, phone, address, gst_number, logo_url, settings ? JSON.stringify(settings) : null, req.tenant.id]
     );
     res.json(result.rows[0]);
   } catch (err) { next(err); }
