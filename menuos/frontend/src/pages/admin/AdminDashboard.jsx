@@ -112,8 +112,8 @@ export default function AdminDashboard() {
     refetchInterval: 60000,
   });
 
-  // Use backend URL for QR code (more reliable on mobile networks)
-  const menuUrl = `https://menuos-production.up.railway.com/r/${slug}/menu`;
+  // Use frontend URL for QR code
+  const menuUrl = `https://soothing-embrace-production.up.railway.com/r/${slug}/menu`;
 
   return (
     <div style={{ padding: 32 }}>

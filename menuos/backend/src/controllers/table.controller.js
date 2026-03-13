@@ -47,9 +47,8 @@ export async function getQRCode(req, res, next) {
     if (!result.rows[0]) return res.status(404).json({ error: 'Table not found' });
 
     const table = result.rows[0];
-    // Use backend URL for QR codes - backend will redirect to frontend
-    // This works better on mobile networks that block the frontend domain
-    const base = process.env.QR_BASE_URL || `https://menuos-production.up.railway.com`;
+    // Use frontend URL for QR codes - customers access menu directly
+    const base = process.env.QR_BASE_URL || `https://soothing-embrace-production.up.railway.com`;
     // Common QR code - points to menu without table number
     // Customer will enter table number at checkout
     const url = `${base}/r/${req.tenant.slug}/menu`;
