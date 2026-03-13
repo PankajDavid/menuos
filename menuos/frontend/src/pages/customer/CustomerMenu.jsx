@@ -11,10 +11,10 @@ const TAG_COLORS = { vegan:'100,200,120', vegetarian:'120,200,100', 'gluten-free
 function VideoModal({ videoUrl, onClose }) {
   if (!videoUrl) return null;
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }} onClick={onClose}>
-      <div style={{ position: 'relative', maxWidth: 600, width: '100%' }} onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} style={{ position: 'absolute', top: -40, right: 0, background: 'transparent', border: 'none', color: '#fff', fontSize: 24, cursor: 'pointer' }}>✕</button>
-        <video src={videoUrl} style={{ width: '100%', borderRadius: 8 }} controls autoPlay muted loop />
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16, touchAction: 'manipulation' }} onClick={onClose}>
+      <div style={{ position: 'relative', maxWidth: '100%', width: '100%' }} onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} style={{ position: 'absolute', top: -44, right: 0, background: 'transparent', border: 'none', color: '#fff', fontSize: 28, cursor: 'pointer', padding: '10px', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+        <video src={videoUrl} style={{ width: '100%', maxHeight: '70vh', borderRadius: 8 }} controls autoPlay muted loop playsInline />
       </div>
     </div>
   );
@@ -73,7 +73,7 @@ export default function CustomerMenu() {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
             {categories.map(cat => (
               <button key={cat} onClick={() => setCategory(cat)}
-                style={{ padding: '6px 18px', border: `1px solid ${category === cat ? C.gold : C.border}`, background: category === cat ? C.gold : 'transparent', color: category === cat ? C.bg : C.muted, borderRadius: 2, fontFamily: "'Playfair Display', serif", fontSize: 13, cursor: 'pointer' }}>
+                style={{ padding: '10px 18px', border: `1px solid ${category === cat ? C.gold : C.border}`, background: category === cat ? C.gold : 'transparent', color: category === cat ? C.bg : C.muted, borderRadius: 2, fontFamily: "'Playfair Display', serif", fontSize: 14, cursor: 'pointer', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', minHeight: '40px' }}>
                 {cat}
               </button>
             ))}
@@ -81,7 +81,7 @@ export default function CustomerMenu() {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {filters.map(f => (
               <button key={f} onClick={() => toggleFilter(f)}
-                style={{ padding: '4px 12px', border: `1px solid ${activeFilters.has(f) ? C.gold : C.border}`, background: activeFilters.has(f) ? 'rgba(200,168,75,0.1)' : 'transparent', color: activeFilters.has(f) ? C.gold : C.muted, borderRadius: 20, fontSize: 12, cursor: 'pointer' }}>
+                style={{ padding: '8px 14px', border: `1px solid ${activeFilters.has(f) ? C.gold : C.border}`, background: activeFilters.has(f) ? 'rgba(200,168,75,0.1)' : 'transparent', color: activeFilters.has(f) ? C.gold : C.muted, borderRadius: 20, fontSize: 13, cursor: 'pointer', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', minHeight: '36px' }}>
                 {f}
               </button>
             ))}
@@ -104,7 +104,7 @@ export default function CustomerMenu() {
                 {item.video_url && (
                   <button 
                     onClick={() => setPlayingVideo(item.video_url)}
-                    style={{ position: 'absolute', bottom: 8, right: 8, background: '#C8A84B', color: '#0C0A07', border: 'none', borderRadius: '50%', width: 32, height: 32, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    style={{ position: 'absolute', bottom: 8, right: 8, background: '#C8A84B', color: '#0C0A07', border: 'none', borderRadius: '50%', width: 40, height: 40, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                     title="Watch video"
                   >
                     ▶
@@ -123,7 +123,7 @@ export default function CustomerMenu() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: C.gold }}>₹{parseFloat(item.price).toFixed(2)}</span>
                   <button onClick={() => handleAdd(item)}
-                    style={{ background: addedId === item.id ? '#27AE60' : C.gold, color: C.bg, border: 'none', padding: '7px 16px', borderRadius: 2, fontWeight: 600, fontSize: 13, transition: 'all 0.2s' }}>
+                    style={{ background: addedId === item.id ? '#27AE60' : C.gold, color: C.bg, border: 'none', padding: '10px 20px', borderRadius: 2, fontWeight: 600, fontSize: 14, transition: 'all 0.2s', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', minWidth: '80px' }}>
                     {addedId === item.id ? '✓' : '+ Add'}
                   </button>
                 </div>
@@ -137,7 +137,7 @@ export default function CustomerMenu() {
           <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: C.gold, padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ color: C.bg, fontWeight: 700 }}>{count} item{count > 1 ? 's' : ''}</span>
             <button onClick={() => navigate(`/r/${slug}/checkout`, { state: { tableNumber } })}
-              style={{ background: C.bg, color: C.gold, border: 'none', padding: '8px 20px', borderRadius: 4, fontWeight: 700, fontSize: 15 }}>
+              style={{ background: C.bg, color: C.gold, border: 'none', padding: '12px 24px', borderRadius: 4, fontWeight: 700, fontSize: 16, touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', minHeight: '48px' }}>
               View Cart — ₹{total.toFixed(2)} →
             </button>
           </div>
