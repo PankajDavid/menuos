@@ -363,6 +363,27 @@ VALUES
    '["userName", "restaurantName", "role", "inviteUrl"]')
 ON CONFLICT (key) DO NOTHING;
 
+-- ── ANNOUNCEMENTS ─────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS announcements (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title                 VARCHAR(255) NOT NULL,
+  content               TEXT NOT NULL,
+  type                  VARCHAR(20) DEFAULT 'info', -- info, warning, success, error
+  target_audience       VARCHAR(20) DEFAULT 'all', -- all, restaurants, customers, platform_admins
+  is_active             BOOLEAN DEFAULT TRUE,
+  starts_at             TIMESTAMPTZ DEFAULT NOW(),
+  expires_at            TIMESTAMPTZ,
+  created_by            UUID REFERENCES users(id),
+  created_at            TIMESTAMPTZ DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Insert sample announcement
+INSERT INTO announcements (title, content, type, target_audience, is_active)
+VALUES 
+  ('Welcome to MenuOS!', 'Thank you for using MenuOS. We''re constantly improving to serve you better.', 'success', 'all', TRUE)
+ON CONFLICT DO NOTHING;
+
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
 INSERT INTO users (restaurant_id, name, email, password_hash, role)

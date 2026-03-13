@@ -5,6 +5,7 @@ import { getActivityLogs, getActivitySummary } from '../controllers/activity.con
 import { getPlanLimits, updatePlanLimits } from '../controllers/planLimits.controller.js';
 import { getFeatureFlags, updateFeatureFlag } from '../controllers/featureFlags.controller.js';
 import { getEmailTemplates, getEmailTemplate, updateEmailTemplate, previewEmailTemplate, sendTestEmail } from '../controllers/emailTemplates.controller.js';
+import { getAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement } from '../controllers/announcements.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 
 const router = Router();
@@ -28,6 +29,10 @@ router.get('/email-templates/:key', getEmailTemplate);
 router.patch('/email-templates/:key', updateEmailTemplate);
 router.post('/email-templates/:key/preview', previewEmailTemplate);
 router.post('/email-templates/:key/send-test', sendTestEmail);
+router.get('/announcements', getAnnouncements);
+router.post('/announcements', createAnnouncement);
+router.patch('/announcements/:id', updateAnnouncement);
+router.delete('/announcements/:id', deleteAnnouncement);
 router.patch('/restaurants/:id/plan', updatePlan);
 router.patch('/restaurants/:id/toggle', toggleRestaurant);
 router.patch('/users/:id/role', updateUserRole);

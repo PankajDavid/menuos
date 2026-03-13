@@ -63,6 +63,11 @@ export const platformApi = {
   updateEmailTemplate: (key, data) => api.patch(`/api/platform/email-templates/${key}`, data).then(r => r.data),
   previewEmailTemplate: (key, variables) => api.post(`/api/platform/email-templates/${key}/preview`, { variables }).then(r => r.data),
   sendTestEmail: (key, to, variables) => api.post(`/api/platform/email-templates/${key}/send-test`, { to, variables }).then(r => r.data),
+  // Announcements
+  getAnnouncements: () => api.get('/api/platform/announcements').then(r => r.data),
+  createAnnouncement: (data) => api.post('/api/platform/announcements', data).then(r => r.data),
+  updateAnnouncement: (id, data) => api.patch(`/api/platform/announcements/${id}`, data).then(r => r.data),
+  deleteAnnouncement: (id) => api.delete(`/api/platform/announcements/${id}`).then(r => r.data),
 };
 
 export const billingApi = {
@@ -85,4 +90,5 @@ export const authApi = {
   forgotPassword: (email) => api.post('/api/auth/forgot-password', { email }).then(r => r.data),
   resetPassword: (token, password) => api.post('/api/auth/reset-password', { token, password }).then(r => r.data),
   changePassword: (currentPassword, newPassword) => api.post('/api/auth/change-password', { currentPassword, newPassword }).then(r => r.data),
+  getAnnouncements: () => api.get('/api/auth/announcements').then(r => r.data),
 };
