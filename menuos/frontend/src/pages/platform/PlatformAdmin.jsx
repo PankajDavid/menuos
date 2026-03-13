@@ -18,6 +18,8 @@ export default function PlatformAdmin() {
   const { data: users = [] } = useQuery({ queryKey: ['platform-users'], queryFn: platformApi.getUsers, enabled: activeTab === 'users' });
   const { data: invoices = [] } = useQuery({ queryKey: ['platform-invoices'], queryFn: platformApi.getInvoices, enabled: activeTab === 'invoices' });
   const { data: discounts = [] } = useQuery({ queryKey: ['platform-discounts'], queryFn: platformApi.getDiscounts, enabled: activeTab === 'discounts' });
+  const { data: activityLogs = [] } = useQuery({ queryKey: ['activity-logs'], queryFn: () => platformApi.getActivityLogs({ limit: 100 }), enabled: activeTab === 'activity' });
+  const { data: activitySummary } = useQuery({ queryKey: ['activity-summary'], queryFn: platformApi.getActivitySummary, enabled: activeTab === 'activity' });
 
   const planMutation = useMutation({
     mutationFn: ({ id, plan }) => platformApi.updatePlan(id, plan),
@@ -231,6 +233,21 @@ export default function PlatformAdmin() {
             }}
           >
             🎟️ Discounts ({discounts.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('activity')}
+            style={{
+              padding: '10px 20px',
+              background: activeTab === 'activity' ? '#C8A84B' : '#1e293b',
+              color: activeTab === 'activity' ? '#0f172a' : '#94a3b8',
+              border: 'none',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            📋 Activity Logs
           </button>
           <button
             onClick={() => checkSubscriptionsMutation.mutate()}
@@ -509,6 +526,73 @@ export default function PlatformAdmin() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+        )}
+
+        {/* Activity Logs */}
+        {activeTab === 'activity' && (
+        <div>
+          {/* Summary Cards */}
+          {activitySummary && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
+              <div style={{ background: '#1e293b', borderRadius: 12, padding: 20 }}>
+                <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Total Actions (30 days)</div>
+                <div style={{ fontSize: 24, fontWeight: 700, color: '#C8A84B' }}>
+                  {activitySummary.by_action?.reduce((sum, a) => sum + parseInt(a.count), 0) || 0}
+                </div>
+              </div>
+              <div style={{ background: '#1e293b', borderRadius: 12, padding: 20 }}>
+                <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Logins Today</div>
+                <div style={{ fontSize: 24, fontWeight: 700, color: '#16A34A' }}>
+                  {activitySummary.by_day?.[0]?.count || 0}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div style={{ background: '#1e293b', borderRadius: 12, overflow: 'hidden' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #334155' }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700 }}>Recent Activity</h2>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #334155' }}>
+                    {['Time', 'User', 'Action', 'Entity', 'Restaurant', 'Details'].map(h => (
+                      <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {activityLogs.map(log => (
+                    <tr key={log.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                      <td style={{ padding: '14px 16px', color: '#94a3b8', fontSize: 13 }}>
+                        {new Date(log.created_at).toLocaleString()}
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ fontWeight: 600 }}>{log.user_name || 'Unknown'}</div>
+                        <div style={{ color: '#64748b', fontSize: 12 }}>{log.user_role}</div>
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: log.action === 'login' ? '#dcfce7' : '#dbeafe', color: log.action === 'login' ? '#16A34A' : '#1e40af', textTransform: 'capitalize' }}>
+                          {log.action}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 16px', color: '#94a3b8' }}>
+                        {log.entity_type || '-'}
+                      </td>
+                      <td style={{ padding: '14px 16px', color: '#94a3b8' }}>
+                        {log.restaurant_name || '-'}
+                      </td>
+                      <td style={{ padding: '14px 16px', color: '#64748b', fontSize: 13 }}>
+                        {log.details ? JSON.stringify(log.details).slice(0, 50) + '...' : '-'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
         )}

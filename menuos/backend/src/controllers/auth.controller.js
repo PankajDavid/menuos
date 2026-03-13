@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { query } from '../db/pool.js';
 import { slugify } from '../utils/slugify.js';
+import { logActivity } from './activity.controller.js';
 
 function signAccess(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '24h' });
@@ -98,6 +99,20 @@ export async function login(req, res, next) {
     const tokenHash = await bcrypt.hash(refreshToken, 8);
     await query('INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES ($1,$2,$3)',
       [user.id, tokenHash, expiresAt]);
+
+    // Log activity
+    await logActivity({
+      user_id: user.id,
+      user_name: user.name,
+      user_role: user.role,
+      restaurant_id: user.restaurant_id,
+      restaurant_name: user.restaurant_name,
+      action: 'login',
+      entity_type: 'user',
+      entity_id: user.id,
+      details: { email: user.email },
+      ip_address: req.ip
+    });
 
     const { password_hash, ...safeUser } = user;
     res.json({ accessToken, refreshToken, user: safeUser });

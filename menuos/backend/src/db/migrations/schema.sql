@@ -234,6 +234,22 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at            TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- ── ACTIVITY LOGS ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id               UUID REFERENCES users(id) ON DELETE SET NULL,
+  user_name             VARCHAR(255),
+  user_role             VARCHAR(50),
+  restaurant_id         UUID REFERENCES restaurants(id) ON DELETE SET NULL,
+  restaurant_name       VARCHAR(255),
+  action                VARCHAR(100) NOT NULL, -- login, logout, order_created, etc.
+  entity_type           VARCHAR(50), -- order, menu_item, user, etc.
+  entity_id             UUID,
+  details               JSONB,
+  ip_address            INET,
+  created_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
 INSERT INTO users (restaurant_id, name, email, password_hash, role)

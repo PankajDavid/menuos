@@ -43,6 +43,9 @@ export const platformApi = {
   getDiscounts: () => api.get('/api/platform/discounts').then(r => r.data),
   createDiscount: (data) => api.post('/api/platform/discounts', data).then(r => r.data),
   checkSubscriptions: () => api.post('/api/platform/check-subscriptions').then(r => r.data),
+  // Activity Logs
+  getActivityLogs: (params) => api.get('/api/platform/activity-logs', { params }).then(r => r.data),
+  getActivitySummary: () => api.get('/api/platform/activity-logs/summary').then(r => r.data),
 };
 
 export const billingApi = {
