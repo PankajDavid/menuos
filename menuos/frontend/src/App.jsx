@@ -35,7 +35,7 @@ export default function App() {
       <Route path="/r/:slug/order-confirm" element={<OrderConfirmation />} />
 
       {/* Kitchen */}
-      <Route element={<AuthGuard roles={['admin', 'staff', 'kitchen']} />}>
+      <Route element={<AuthGuard roles={['admin', 'staff', 'kitchen', 'platform_admin']} />}>
         <Route path="/r/:slug/kitchen" element={<KitchenDashboard />} />
       </Route>
 
