@@ -113,7 +113,7 @@ export default function AdminDashboard() {
   });
 
   // Use backend URL for QR code (more reliable on mobile networks)
-  const menuUrl = `https://menuos-production.up.railway.app/r/${slug}/menu`;
+  const menuUrl = `https://menuos-production.up.railway.com/r/${slug}/menu`;
 
   return (
     <div style={{ padding: 32 }}>
