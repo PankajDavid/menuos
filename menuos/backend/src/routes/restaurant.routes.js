@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { getRestaurant, updateRestaurant, getAnalytics } from '../controllers/restaurant.controller.js';
 import { getStaff, createStaff, toggleStaffStatus } from '../controllers/staff.controller.js';
 import { getRestaurantLimits, checkLimit } from '../controllers/planLimits.controller.js';
+import { getRestaurantFeatures, checkFeature } from '../controllers/featureFlags.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 import { tenantResolver, requireTenantAccess } from '../middleware/tenantResolver.js';
 
@@ -19,5 +20,9 @@ router.patch('/:slug/staff/:userId/toggle', tenantResolver, authenticate, requir
 // Plan limits routes
 router.get('/:slug/limits', tenantResolver, authenticate, requireTenantAccess, getRestaurantLimits);
 router.get('/:slug/limits/:resource', tenantResolver, authenticate, requireTenantAccess, checkLimit);
+
+// Feature flags routes
+router.get('/:slug/features', tenantResolver, authenticate, requireTenantAccess, getRestaurantFeatures);
+router.get('/:slug/features/:featureKey', tenantResolver, authenticate, requireTenantAccess, checkFeature);
 
 export default router;

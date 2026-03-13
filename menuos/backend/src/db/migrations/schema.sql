@@ -295,6 +295,31 @@ ON CONFLICT (plan) DO UPDATE SET
   max_staff_users = EXCLUDED.max_staff_users,
   updated_at = NOW();
 
+-- ── FEATURE FLAGS ─────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS feature_flags (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  key                   VARCHAR(100) UNIQUE NOT NULL,
+  name                  VARCHAR(255) NOT NULL,
+  description           TEXT,
+  is_enabled            BOOLEAN DEFAULT TRUE,
+  allowed_plans         TEXT[], -- NULL means all plans
+  created_at            TIMESTAMPTZ DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Insert default feature flags
+INSERT INTO feature_flags (key, name, description, is_enabled, allowed_plans)
+VALUES 
+  ('qr_code', 'QR Code Ordering', 'Enable QR code based ordering', TRUE, NULL),
+  ('online_payments', 'Online Payments', 'Enable online payment processing', TRUE, ARRAY['basic', 'pro', 'premium']),
+  ('kitchen_display', 'Kitchen Display', 'Enable kitchen dashboard display', TRUE, ARRAY['pro', 'premium']),
+  ('table_management', 'Table Management', 'Enable table and QR management', TRUE, ARRAY['basic', 'pro', 'premium']),
+  ('staff_management', 'Staff Management', 'Enable staff user management', TRUE, ARRAY['pro', 'premium']),
+  ('analytics', 'Advanced Analytics', 'Enable detailed analytics dashboard', TRUE, ARRAY['pro', 'premium']),
+  ('api_access', 'API Access', 'Enable API access for integrations', FALSE, ARRAY['premium']),
+  ('white_label', 'White Label', 'Enable white-label branding', FALSE, ARRAY['premium'])
+ON CONFLICT (key) DO NOTHING;
+
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
 INSERT INTO users (restaurant_id, name, email, password_hash, role)

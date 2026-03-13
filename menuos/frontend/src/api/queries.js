@@ -53,6 +53,9 @@ export const platformApi = {
   updatePlanLimits: (plan, data) => api.patch(`/api/platform/plan-limits/${plan}`, data).then(r => r.data),
   // Analytics
   getPopularItems: () => api.get('/api/platform/popular-items').then(r => r.data),
+  // Feature Flags
+  getFeatureFlags: () => api.get('/api/platform/feature-flags').then(r => r.data),
+  updateFeatureFlag: (key, data) => api.patch(`/api/platform/feature-flags/${key}`, data).then(r => r.data),
 };
 
 export const billingApi = {
@@ -64,6 +67,11 @@ export const billingApi = {
 export const limitsApi = {
   getLimits: (slug) => api.get(`/api/restaurants/${slug}/limits`).then(r => r.data),
   checkLimit: (slug, resource) => api.get(`/api/restaurants/${slug}/limits/${resource}`).then(r => r.data),
+};
+
+export const featuresApi = {
+  getFeatures: (slug) => api.get(`/api/restaurants/${slug}/features`).then(r => r.data),
+  checkFeature: (slug, featureKey) => api.get(`/api/restaurants/${slug}/features/${featureKey}`).then(r => r.data),
 };
 
 export const authApi = {
