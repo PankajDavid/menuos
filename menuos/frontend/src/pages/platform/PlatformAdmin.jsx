@@ -33,12 +33,7 @@ export default function PlatformAdmin() {
   const [showAnnouncements, setShowAnnouncements] = useState(false);
   const [showSupportTickets, setShowSupportTickets] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showTrialManagement, setShowTrialManagement] = useState(false);
-  const [showRevenueAnalytics, setShowRevenueAnalytics] = useState(false);
-  const [showReferralProgram, setShowReferralProgram] = useState(false);
-  const [showInAppMessaging, setShowInAppMessaging] = useState(false);
-  const [showFailedPayments, setShowFailedPayments] = useState(false);
-  const [showRestaurantHealth, setShowRestaurantHealth] = useState(false);
+  const [activeFeature, setActiveFeature] = useState(null);
 
   const { data: analytics } = useQuery({ queryKey: ['platform-analytics'], queryFn: platformApi.getAnalytics });
   const { data: restaurants = [] } = useQuery({ queryKey: ['platform-restaurants'], queryFn: platformApi.getRestaurants });
@@ -114,36 +109,81 @@ export default function PlatformAdmin() {
 
   const handleLogout = async () => { await logout(); navigate('/login'); };
 
+  const sidebarItems = [
+    { id: 'planLimits', label: 'Plan Limits', icon: '⚙️', color: '#7C3AED', component: PlanLimits },
+    { id: 'featureFlags', label: 'Feature Flags', icon: '🚦', color: '#0891b2', component: FeatureFlags },
+    { id: 'geography', label: 'Geography', icon: '🌍', color: '#059669', component: Geography },
+    { id: 'emailTemplates', label: 'Email Templates', icon: '📧', color: '#ea580c', component: EmailTemplates },
+    { id: 'announcements', label: 'Announcements', icon: '📢', color: '#7c3aed', component: Announcements },
+    { id: 'supportTickets', label: 'Support Tickets', icon: '🎫', color: '#db2777', component: SupportTickets },
+    { id: 'onboarding', label: 'Onboarding', icon: '✅', color: '#0891b2', component: Onboarding },
+    { id: 'trialManagement', label: 'Trial Management', icon: '🎯', color: '#059669', component: TrialManagement },
+    { id: 'revenueAnalytics', label: 'Revenue Analytics', icon: '💰', color: '#d97706', component: RevenueAnalytics },
+    { id: 'referralProgram', label: 'Referral Program', icon: '🎁', color: '#db2777', component: ReferralProgram },
+    { id: 'inAppMessaging', label: 'Messages', icon: '💬', color: '#0891b2', component: InAppMessaging },
+    { id: 'failedPayments', label: 'Failed Payments', icon: '💳', color: '#dc2626', component: FailedPayments },
+    { id: 'restaurantHealth', label: 'Health Monitor', icon: '🏥', color: '#16A34A', component: RestaurantHealth },
+  ];
+
+  const ActiveComponent = activeFeature ? sidebarItems.find(i => i.id === activeFeature)?.component : null;
+
   return (
-    <div style={{ minHeight: '100vh', background: '#0f172a', fontFamily: 'Inter, sans-serif', color: '#e2e8f0' }}>
-      {/* Header */}
-      <div style={{ background: '#1e293b', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155' }}>
-        <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, color: '#C8A84B' }}>🍽 MenuOS — Platform Admin</div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <button onClick={() => handleExport('restaurants')} style={{ background: '#16A34A', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>📥 Export Restaurants</button>
-          <button onClick={() => handleExport('orders')} style={{ background: '#2563EB', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>📥 Export Orders</button>
-          <button onClick={() => setShowPlanLimits(!showPlanLimits)} style={{ background: '#7C3AED', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>⚙️ Plan Limits</button>
-          <button onClick={() => setShowFeatureFlags(!showFeatureFlags)} style={{ background: '#0891b2', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>🚦 Feature Flags</button>
-          <button onClick={() => setShowGeography(!showGeography)} style={{ background: '#059669', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>🌍 Geography</button>
-          <button onClick={() => setShowEmailTemplates(!showEmailTemplates)} style={{ background: '#ea580c', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>📧 Email Templates</button>
-          <button onClick={() => setShowAnnouncements(!showAnnouncements)} style={{ background: '#7c3aed', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>📢 Announcements</button>
-          <button onClick={() => setShowSupportTickets(!showSupportTickets)} style={{ background: '#db2777', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>🎫 Support Tickets</button>
-          <button onClick={() => setShowOnboarding(!showOnboarding)} style={{ background: '#0891b2', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>✅ Onboarding</button>
-          <button onClick={() => setShowTrialManagement(!showTrialManagement)} style={{ background: '#059669', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>🎯 Trials</button>
-          <button onClick={() => setShowRevenueAnalytics(!showRevenueAnalytics)} style={{ background: '#d97706', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>💰 Revenue</button>
-          <button onClick={() => setShowReferralProgram(!showReferralProgram)} style={{ background: '#db2777', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>🎁 Referrals</button>
-          <button onClick={() => setShowInAppMessaging(!showInAppMessaging)} style={{ background: '#0891b2', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>💬 Messages</button>
-          <button onClick={() => setShowFailedPayments(!showFailedPayments)} style={{ background: '#dc2626', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>💳 Failed</button>
-          <button onClick={() => setShowRestaurantHealth(!showRestaurantHealth)} style={{ background: '#16A34A', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>🏥 Health</button>
-          <Link to="/r/pankys/admin" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 14, padding: '7px 16px', border: '1px solid #334155', borderRadius: 8 }}>🏪 My Restaurant</Link>
-          <button onClick={handleLogout} style={{ background: 'transparent', border: '1px solid #334155', color: '#94a3b8', padding: '7px 16px', borderRadius: 8, cursor: 'pointer' }}>Logout</button>
+    <div style={{ minHeight: '100vh', background: '#0f172a', fontFamily: 'Inter, sans-serif', color: '#e2e8f0', display: 'flex' }}>
+      {/* Sidebar */}
+      <div style={{ width: 240, background: '#1e293b', borderRight: '1px solid #334155', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '20px 16px', borderBottom: '1px solid #334155' }}>
+          <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 20, color: '#C8A84B', textAlign: 'center' }}>🍽 MenuOS</div>
+          <div style={{ fontSize: 12, color: '#64748b', textAlign: 'center', marginTop: 4 }}>Platform Admin</div>
+        </div>
+        
+        <div style={{ flex: 1, overflow: 'auto', padding: '12px 0' }}>
+          {sidebarItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveFeature(activeFeature === item.id ? null : item.id)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: activeFeature === item.id ? `${item.color}20` : 'transparent',
+                border: 'none',
+                borderLeft: `3px solid ${activeFeature === item.id ? item.color : 'transparent'}`,
+                color: activeFeature === item.id ? '#e2e8f0' : '#94a3b8',
+                fontSize: 14,
+                textAlign: 'left',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                transition: 'all 0.2s'
+              }}
+            >
+              <span style={{ fontSize: 18 }}>{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
+        
+        <div style={{ padding: '16px', borderTop: '1px solid #334155' }}>
+          <Link to="/r/pankys/admin" style={{ display: 'block', padding: '10px 12px', color: '#94a3b8', textDecoration: 'none', fontSize: 14, borderRadius: 6, border: '1px solid #334155', marginBottom: 8, textAlign: 'center' }}>🏪 My Restaurant</Link>
+          <button onClick={handleLogout} style={{ width: '100%', padding: '10px 12px', background: 'transparent', border: '1px solid #334155', color: '#94a3b8', borderRadius: 6, cursor: 'pointer', fontSize: 14 }}>Logout</button>
         </div>
       </div>
 
-      {showPlanLimits ? (
-        <PlanLimits />
+      {/* Main Content */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Header */}
+        <div style={{ background: '#1e293b', padding: '16px 32px', display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: '1px solid #334155', position: 'relative' }}>
+          <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, color: '#C8A84B' }}>🍽 MenuOS — Platform Admin</div>
+          <div style={{ position: 'absolute', right: 32, display: 'flex', gap: 12 }}>
+            <button onClick={() => handleExport('restaurants')} style={{ background: '#16A34A', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>📥 Export Restaurants</button>
+            <button onClick={() => handleExport('orders')} style={{ background: '#2563EB', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>📥 Export Orders</button>
+          </div>
+        </div>
+
+      {ActiveComponent ? (
+        <ActiveComponent restaurants={restaurants} onClose={() => setActiveFeature(null)} />
       ) : (
-      <div style={{ padding: 32 }}>
+      <div style={{ padding: 32, overflow: 'auto' }}>
         {/* Stats */}
         {analytics && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
@@ -791,46 +831,7 @@ export default function PlatformAdmin() {
         )}
       </div>
       )}
-
-      {showPlanLimits && (
-        <PlanLimits onClose={() => setShowPlanLimits(false)} />
-      )}
-      {showFeatureFlags && (
-        <FeatureFlags onClose={() => setShowFeatureFlags(false)} />
-      )}
-      {showGeography && (
-        <Geography onClose={() => setShowGeography(false)} />
-      )}
-      {showEmailTemplates && (
-        <EmailTemplates onClose={() => setShowEmailTemplates(false)} />
-      )}
-      {showAnnouncements && (
-        <Announcements onClose={() => setShowAnnouncements(false)} />
-      )}
-      {showSupportTickets && (
-        <SupportTickets onClose={() => setShowSupportTickets(false)} />
-      )}
-      {showOnboarding && (
-        <Onboarding onClose={() => setShowOnboarding(false)} />
-      )}
-      {showTrialManagement && (
-        <TrialManagement onClose={() => setShowTrialManagement(false)} />
-      )}
-      {showRevenueAnalytics && (
-        <RevenueAnalytics onClose={() => setShowRevenueAnalytics(false)} />
-      )}
-      {showReferralProgram && (
-        <ReferralProgram onClose={() => setShowReferralProgram(false)} />
-      )}
-      {showInAppMessaging && (
-        <InAppMessaging restaurants={restaurants} onClose={() => setShowInAppMessaging(false)} />
-      )}
-      {showFailedPayments && (
-        <FailedPayments onClose={() => setShowFailedPayments(false)} />
-      )}
-      {showRestaurantHealth && (
-        <RestaurantHealth onClose={() => setShowRestaurantHealth(false)} />
-      )}
+      </div>
     </div>
   );
 }
