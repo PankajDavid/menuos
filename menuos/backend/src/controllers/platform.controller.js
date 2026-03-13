@@ -19,7 +19,7 @@ export async function getAllRestaurants(req, res, next) {
 // GET /api/platform/analytics
 export async function getPlatformAnalytics(req, res, next) {
   try {
-    const [totals, planBreakdown, recentSignups, dailyOrders] = await Promise.all([
+    const [totals, planBreakdown, recentSignups, dailyOrders, revenueByMonth, atRiskRestaurants] = await Promise.all([
       query(`SELECT
         (SELECT COUNT(*) FROM restaurants WHERE is_active=TRUE) as total_restaurants,
         (SELECT COUNT(*) FROM orders) as total_orders,
@@ -37,6 +37,30 @@ export async function getPlatformAnalytics(req, res, next) {
              SUM(total_amount) as revenue
              FROM orders WHERE created_at >= NOW() - INTERVAL '7 days'
              GROUP BY DATE(created_at) ORDER BY date`),
+
+      // Monthly revenue for last 6 months
+      query(`SELECT 
+             DATE_TRUNC('month', created_at) as month,
+             COUNT(*) as orders,
+             COALESCE(SUM(total_amount), 0) as revenue
+             FROM orders 
+             WHERE payment_status = 'paid' 
+             AND created_at >= NOW() - INTERVAL '6 months'
+             GROUP BY DATE_TRUNC('month', created_at)
+             ORDER BY month DESC`),
+
+      // At-risk restaurants (no orders in last 30 days)
+      query(`SELECT r.id, r.name, r.owner_email, r.subscription_plan, r.created_at,
+             (SELECT MAX(created_at) FROM orders o WHERE o.restaurant_id = r.id) as last_order_date
+             FROM restaurants r
+             WHERE r.is_active = TRUE
+             AND NOT EXISTS (
+               SELECT 1 FROM orders o 
+               WHERE o.restaurant_id = r.id 
+               AND o.created_at >= NOW() - INTERVAL '30 days'
+             )
+             ORDER BY r.created_at DESC
+             LIMIT 10`)
     ]);
 
     res.json({
@@ -44,6 +68,8 @@ export async function getPlatformAnalytics(req, res, next) {
       plan_breakdown: planBreakdown.rows,
       recent_signups: recentSignups.rows,
       daily_orders: dailyOrders.rows,
+      revenue_by_month: revenueByMonth.rows,
+      at_risk_restaurants: atRiskRestaurants.rows
     });
   } catch (err) { next(err); }
 }
@@ -89,5 +115,20 @@ export async function toggleRestaurant(req, res, next) {
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Restaurant not found' });
     res.json(result.rows[0]);
+  } catch (err) { next(err); }
+}
+
+// GET /api/platform/users
+export async function getAllUsers(req, res, next) {
+  try {
+    const result = await query(`
+      SELECT u.id, u.name, u.email, u.role, u.is_active, u.last_login_at, u.created_at,
+             r.name as restaurant_name, r.slug as restaurant_slug
+      FROM users u
+      LEFT JOIN restaurants r ON u.restaurant_id = r.id
+      WHERE u.role != 'platform_admin'
+      ORDER BY u.created_at DESC
+    `);
+    res.json(result.rows);
   } catch (err) { next(err); }
 }

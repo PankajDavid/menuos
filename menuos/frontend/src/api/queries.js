@@ -32,6 +32,8 @@ export const restaurantApi = {
 export const platformApi = {
   getRestaurants: () => api.get('/api/platform/restaurants').then(r => r.data),
   getAnalytics: () => api.get('/api/platform/analytics').then(r => r.data),
+  getUsers: () => api.get('/api/platform/users').then(r => r.data),
   updatePlan: (id, plan) => api.patch(`/api/platform/restaurants/${id}/plan`, { plan }).then(r => r.data),
   toggle: (id) => api.patch(`/api/platform/restaurants/${id}/toggle`).then(r => r.data),
+  updateUserRole: (id, role) => api.patch(`/api/platform/users/${id}/role`, { role }).then(r => r.data),
 };

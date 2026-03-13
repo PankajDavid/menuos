@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { platformApi } from '../../api/queries.js';
 import { useAuthStore } from '../../store/authStore.js';
@@ -9,9 +10,11 @@ export default function PlatformAdmin() {
   const qc = useQueryClient();
   const { logout } = useAuthStore();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('restaurants');
 
   const { data: analytics } = useQuery({ queryKey: ['platform-analytics'], queryFn: platformApi.getAnalytics });
   const { data: restaurants = [] } = useQuery({ queryKey: ['platform-restaurants'], queryFn: platformApi.getRestaurants });
+  const { data: users = [] } = useQuery({ queryKey: ['platform-users'], queryFn: platformApi.getUsers, enabled: activeTab === 'users' });
 
   const planMutation = useMutation({
     mutationFn: ({ id, plan }) => platformApi.updatePlan(id, plan),
@@ -54,6 +57,26 @@ export default function PlatformAdmin() {
           </div>
         )}
 
+        {/* Revenue Chart */}
+        {analytics?.revenue_by_month && analytics.revenue_by_month.length > 0 && (
+          <div style={{ background: '#1e293b', borderRadius: 12, padding: 24, marginBottom: 32 }}>
+            <h2 style={{ marginBottom: 16, fontSize: 16, fontWeight: 700 }}>Monthly Revenue (Last 6 Months)</h2>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, height: 150 }}>
+              {[...analytics.revenue_by_month].reverse().map((month, idx) => {
+                const maxRevenue = Math.max(...analytics.revenue_by_month.map(m => parseFloat(m.revenue)));
+                const height = maxRevenue > 0 ? (parseFloat(month.revenue) / maxRevenue) * 120 : 0;
+                return (
+                  <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ fontSize: 11, color: '#C8A84B', marginBottom: 4 }}>₹{(parseFloat(month.revenue) / 1000).toFixed(0)}k</div>
+                    <div style={{ width: '100%', height: `${height}px`, background: '#C8A84B', borderRadius: '4px 4px 0 0', minHeight: 4 }} />
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>{new Date(month.month).toLocaleDateString('en-US', { month: 'short' })}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Plan breakdown */}
         {analytics?.plan_breakdown && (
           <div style={{ background: '#1e293b', borderRadius: 12, padding: 24, marginBottom: 32 }}>
@@ -70,7 +93,77 @@ export default function PlatformAdmin() {
           </div>
         )}
 
+        {/* At-Risk Restaurants */}
+        {analytics?.at_risk_restaurants && analytics.at_risk_restaurants.length > 0 && (
+          <div style={{ background: '#1e293b', borderRadius: 12, padding: 24, marginBottom: 32, border: '1px solid #dc2626' }}>
+            <h2 style={{ marginBottom: 16, fontSize: 16, fontWeight: 700, color: '#ef4444' }}>⚠️ At-Risk Restaurants (No orders in 30 days)</h2>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #334155' }}>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 12, color: '#64748b' }}>Restaurant</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 12, color: '#64748b' }}>Owner</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 12, color: '#64748b' }}>Plan</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 12, color: '#64748b' }}>Last Order</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analytics.at_risk_restaurants.map(r => (
+                    <tr key={r.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                      <td style={{ padding: '8px 12px', fontSize: 13 }}>{r.name}</td>
+                      <td style={{ padding: '8px 12px', fontSize: 13, color: '#94a3b8' }}>{r.owner_email}</td>
+                      <td style={{ padding: '8px 12px' }}>
+                        <span style={{ padding: '2px 8px', borderRadius: 12, fontSize: 11, background: PLAN_COLORS[r.subscription_plan], color: '#fff' }}>
+                          {r.subscription_plan}
+                        </span>
+                      </td>
+                      <td style={{ padding: '8px 12px', fontSize: 13, color: '#ef4444' }}>
+                        {r.last_order_date ? new Date(r.last_order_date).toLocaleDateString() : 'Never'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Tab Navigation */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+          <button
+            onClick={() => setActiveTab('restaurants')}
+            style={{
+              padding: '10px 20px',
+              background: activeTab === 'restaurants' ? '#C8A84B' : '#1e293b',
+              color: activeTab === 'restaurants' ? '#0f172a' : '#94a3b8',
+              border: 'none',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            🏪 Restaurants ({restaurants.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('users')}
+            style={{
+              padding: '10px 20px',
+              background: activeTab === 'users' ? '#C8A84B' : '#1e293b',
+              color: activeTab === 'users' ? '#0f172a' : '#94a3b8',
+              border: 'none',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            👥 Users ({users.length})
+          </button>
+        </div>
+
         {/* Restaurants table */}
+        {activeTab === 'restaurants' && (
         <div style={{ background: '#1e293b', borderRadius: 12, overflow: 'hidden' }}>
           <div style={{ padding: '20px 24px', borderBottom: '1px solid #334155' }}>
             <h2 style={{ fontSize: 18, fontWeight: 700 }}>All Restaurants ({restaurants.length})</h2>
@@ -125,6 +218,57 @@ export default function PlatformAdmin() {
             </table>
           </div>
         </div>
+        )}
+
+        {/* Users table */}
+        {activeTab === 'users' && (
+        <div style={{ background: '#1e293b', borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ padding: '20px 24px', borderBottom: '1px solid #334155' }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700 }}>All Users ({users.length})</h2>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #334155' }}>
+                  {['User', 'Restaurant', 'Role', 'Status', 'Last Login', 'Actions'].map(h => (
+                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {users.map(u => (
+                  <tr key={u.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                    <td style={{ padding: '14px 16px' }}>
+                      <div style={{ fontWeight: 600 }}>{u.name}</div>
+                      <div style={{ color: '#64748b', fontSize: 12 }}>{u.email}</div>
+                    </td>
+                    <td style={{ padding: '14px 16px', color: '#94a3b8', fontSize: 14 }}>
+                      {u.restaurant_name || 'N/A'}
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: u.role === 'admin' ? '#dbeafe' : u.role === 'kitchen' ? '#fef3c7' : '#f3f4f6', color: u.role === 'admin' ? '#1e40af' : u.role === 'kitchen' ? '#92400e' : '#374151' }}>
+                        {u.role}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: u.is_active ? '#dcfce7' : '#fee2e2', color: u.is_active ? '#16A34A' : '#dc2626' }}>
+                        {u.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 16px', color: '#94a3b8', fontSize: 13 }}>
+                      {u.last_login_at ? new Date(u.last_login_at).toLocaleDateString() : 'Never'}
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <a href={`/r/${u.restaurant_slug}/admin`} target="_blank" rel="noreferrer"
+                        style={{ padding: '5px 10px', background: '#1e40af', color: '#fff', borderRadius: 6, fontSize: 12, textDecoration: 'none' }}>View</a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        )}
       </div>
     </div>
   );
