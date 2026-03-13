@@ -5,7 +5,7 @@ import { query } from '../db/pool.js';
 import { slugify } from '../utils/slugify.js';
 
 function signAccess(payload) {
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '15m' });
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '24h' });
 }
 
 function signRefresh(payload) {
@@ -91,7 +91,6 @@ export async function login(req, res, next) {
     await query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [user.id]);
 
     const tokenPayload = { userId: user.id, restaurantId: user.restaurant_id, role: user.role };
-    console.log('Login - User role from DB:', user.role, 'Token payload:', tokenPayload);
     const accessToken = signAccess(tokenPayload);
     const refreshToken = signRefresh({ userId: user.id });
 
