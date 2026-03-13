@@ -11,6 +11,7 @@ import { getOnboardingItems, createOnboardingItem, updateOnboardingItem, deleteO
 import { getTrials, getTrialStats, startTrial, convertTrial, extendTrial, getTrialEngagement } from '../controllers/trialManagement.controller.js';
 import { getRevenueAnalytics, getMrrHistory, getUpgradeAnalysis, recordRevenueEvent, createMrrSnapshot } from '../controllers/revenueAnalytics.controller.js';
 import { getReferrals, getReferralStats, markReferralConverted, payReferralReward, updateReferralCode } from '../controllers/referralProgram.controller.js';
+import { getConversations, getConversation, sendPlatformMessage, updateConversation, getMessagingStats, createPlatformConversation } from '../controllers/messaging.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 
 const router = Router();
@@ -62,6 +63,12 @@ router.get('/referrals/stats', getReferralStats);
 router.post('/referrals/:id/mark-converted', markReferralConverted);
 router.post('/referrals/:id/pay-reward', payReferralReward);
 router.patch('/referral-codes/:id', updateReferralCode);
+router.get('/conversations', getConversations);
+router.get('/conversations/stats', getMessagingStats);
+router.get('/conversations/:id', getConversation);
+router.post('/conversations', createPlatformConversation);
+router.post('/conversations/:id/messages', sendPlatformMessage);
+router.patch('/conversations/:id', updateConversation);
 router.patch('/restaurants/:id/plan', updatePlan);
 router.patch('/restaurants/:id/toggle', toggleRestaurant);
 router.patch('/users/:id/role', updateUserRole);

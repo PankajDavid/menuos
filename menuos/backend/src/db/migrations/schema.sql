@@ -564,6 +564,38 @@ CREATE INDEX IF NOT EXISTS idx_referral_codes_code ON referral_codes(code);
 CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_restaurant_id);
 CREATE INDEX IF NOT EXISTS idx_referrals_status ON referrals(status);
 
+-- ── IN-APP MESSAGING ──────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS conversations (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  restaurant_id         UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+  user_id               UUID REFERENCES users(id),
+  subject               VARCHAR(200) NOT NULL,
+  status                VARCHAR(20) DEFAULT 'open', -- open, closed, archived
+  priority              VARCHAR(20) DEFAULT 'normal', -- low, normal, high, urgent
+  last_message_at       TIMESTAMPTZ DEFAULT NOW(),
+  created_at            TIMESTAMPTZ DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id       UUID REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_id             UUID REFERENCES users(id),
+  sender_type           VARCHAR(20) NOT NULL, -- user, platform_admin, system
+  content               TEXT NOT NULL,
+  is_read               BOOLEAN DEFAULT FALSE,
+  read_at               TIMESTAMPTZ,
+  attachments           JSONB, -- array of {name, url, type}
+  created_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_conversations_restaurant ON conversations(restaurant_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_status ON conversations(status);
+CREATE INDEX IF NOT EXISTS idx_conversations_priority ON conversations(priority);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
+
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
 INSERT INTO users (restaurant_id, name, email, password_hash, role)

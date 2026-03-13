@@ -6,6 +6,7 @@ import { getRestaurantFeatures, checkFeature } from '../controllers/featureFlags
 import { getRestaurantOnboarding, completeOnboardingItem, uncompleteOnboardingItem } from '../controllers/onboarding.controller.js';
 import { trackEngagement } from '../controllers/trialManagement.controller.js';
 import { createReferralCode, getMyReferralCodes, getMyReferrals } from '../controllers/referralProgram.controller.js';
+import { getRestaurantConversations, createConversation, getRestaurantConversation, sendRestaurantMessage } from '../controllers/messaging.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 import { tenantResolver, requireTenantAccess } from '../middleware/tenantResolver.js';
 
@@ -40,5 +41,11 @@ router.post('/:slug/trial/track', tenantResolver, authenticate, requireTenantAcc
 router.get('/:slug/referral-codes', tenantResolver, authenticate, requireTenantAccess, getMyReferralCodes);
 router.post('/:slug/referral-codes', tenantResolver, authenticate, requireTenantAccess, createReferralCode);
 router.get('/:slug/referrals', tenantResolver, authenticate, requireTenantAccess, getMyReferrals);
+
+// Messaging routes
+router.get('/:slug/conversations', tenantResolver, authenticate, requireTenantAccess, getRestaurantConversations);
+router.post('/:slug/conversations', tenantResolver, authenticate, requireTenantAccess, createConversation);
+router.get('/:slug/conversations/:id', tenantResolver, authenticate, requireTenantAccess, getRestaurantConversation);
+router.post('/:slug/conversations/:id/messages', tenantResolver, authenticate, requireTenantAccess, sendRestaurantMessage);
 
 export default router;

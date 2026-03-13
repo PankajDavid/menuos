@@ -94,6 +94,13 @@ export const platformApi = {
   getReferralStats: () => api.get('/api/platform/referrals/stats').then(r => r.data),
   markReferralConverted: (id) => api.post(`/api/platform/referrals/${id}/mark-converted`).then(r => r.data),
   payReferralReward: (id, amount) => api.post(`/api/platform/referrals/${id}/pay-reward`, { amount }).then(r => r.data),
+  // In-App Messaging (Platform Admin)
+  getConversations: (params) => api.get('/api/platform/conversations', { params }).then(r => r.data),
+  getConversation: (id) => api.get(`/api/platform/conversations/${id}`).then(r => r.data),
+  getMessagingStats: () => api.get('/api/platform/conversations/stats').then(r => r.data),
+  createConversation: (data) => api.post('/api/platform/conversations', data).then(r => r.data),
+  sendMessage: (id, content) => api.post(`/api/platform/conversations/${id}/messages`, { content }).then(r => r.data),
+  updateConversation: (id, data) => api.patch(`/api/platform/conversations/${id}`, data).then(r => r.data),
 };
 
 export const billingApi = {
@@ -127,6 +134,13 @@ export const referralApi = {
   createReferralCode: (slug, data) => api.post(`/api/restaurants/${slug}/referral-codes`, data).then(r => r.data),
   getMyReferrals: (slug) => api.get(`/api/restaurants/${slug}/referrals`).then(r => r.data),
   applyReferralCode: (code, restaurantId) => api.post('/api/auth/referrals/apply', { code, restaurant_id: restaurantId }).then(r => r.data),
+};
+
+export const messagingApi = {
+  getConversations: (slug) => api.get(`/api/restaurants/${slug}/conversations`).then(r => r.data),
+  createConversation: (slug, data) => api.post(`/api/restaurants/${slug}/conversations`, data).then(r => r.data),
+  getConversation: (slug, id) => api.get(`/api/restaurants/${slug}/conversations/${id}`).then(r => r.data),
+  sendMessage: (slug, id, content) => api.post(`/api/restaurants/${slug}/conversations/${id}/messages`, { content }).then(r => r.data),
 };
 
 export const authApi = {
