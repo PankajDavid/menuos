@@ -4,6 +4,7 @@ import { getStaff, createStaff, toggleStaffStatus } from '../controllers/staff.c
 import { getRestaurantLimits, checkLimit } from '../controllers/planLimits.controller.js';
 import { getRestaurantFeatures, checkFeature } from '../controllers/featureFlags.controller.js';
 import { getRestaurantOnboarding, completeOnboardingItem, uncompleteOnboardingItem } from '../controllers/onboarding.controller.js';
+import { trackEngagement } from '../controllers/trialManagement.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 import { tenantResolver, requireTenantAccess } from '../middleware/tenantResolver.js';
 
@@ -30,5 +31,8 @@ router.get('/:slug/features/:featureKey', tenantResolver, authenticate, requireT
 router.get('/:slug/onboarding', tenantResolver, authenticate, requireTenantAccess, getRestaurantOnboarding);
 router.post('/:slug/onboarding/:itemId/complete', tenantResolver, authenticate, requireTenantAccess, completeOnboardingItem);
 router.post('/:slug/onboarding/:itemId/uncomplete', tenantResolver, authenticate, requireTenantAccess, uncompleteOnboardingItem);
+
+// Trial engagement tracking
+router.post('/:slug/trial/track', tenantResolver, authenticate, requireTenantAccess, trackEngagement);
 
 export default router;

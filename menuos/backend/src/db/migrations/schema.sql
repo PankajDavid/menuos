@@ -459,6 +459,37 @@ VALUES
   ('go_live', 'Go Live!', 'Enable your restaurant for customers', 'launch', 10, TRUE)
 ON CONFLICT (key) DO NOTHING;
 
+-- ── TRIAL MANAGEMENT ──────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS trial_conversions (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  restaurant_id         UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+  started_at            TIMESTAMPTZ DEFAULT NOW(),
+  expires_at            TIMESTAMPTZ NOT NULL,
+  converted_at          TIMESTAMPTZ,
+  converted_to_plan     subscription_plan,
+  converted_by_user_id  UUID REFERENCES users(id),
+  trial_duration_days   INTEGER DEFAULT 14,
+  source                VARCHAR(50) DEFAULT 'organic', -- organic, referral, campaign
+  notes                 TEXT,
+  created_at            TIMESTAMPTZ DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Trial engagement tracking
+CREATE TABLE IF NOT EXISTS trial_engagement (
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  restaurant_id         UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+  event_type            VARCHAR(50) NOT NULL, -- login, menu_view, order_placed, staff_added, etc.
+  event_data            JSONB,
+  created_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_trial_conversions_restaurant ON trial_conversions(restaurant_id);
+CREATE INDEX IF NOT EXISTS idx_trial_conversions_expires ON trial_conversions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_trial_engagement_restaurant ON trial_engagement(restaurant_id);
+CREATE INDEX IF NOT EXISTS idx_trial_engagement_event ON trial_engagement(event_type);
+
 -- ── SEED PLATFORM ADMIN (change password after first run!) ────────────────
 -- Password: Admin@123 (bcrypt hash below)
 INSERT INTO users (restaurant_id, name, email, password_hash, role)

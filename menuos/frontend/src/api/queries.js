@@ -78,6 +78,13 @@ export const platformApi = {
   updateOnboardingItem: (id, data) => api.patch(`/api/platform/onboarding-items/${id}`, data).then(r => r.data),
   deleteOnboardingItem: (id) => api.delete(`/api/platform/onboarding-items/${id}`).then(r => r.data),
   getOnboardingOverview: () => api.get('/api/platform/onboarding/overview').then(r => r.data),
+  // Trial Management (Platform Admin)
+  getTrials: (params) => api.get('/api/platform/trials', { params }).then(r => r.data),
+  getTrialStats: () => api.get('/api/platform/trials/stats').then(r => r.data),
+  startTrial: (data) => api.post('/api/platform/trials', data).then(r => r.data),
+  convertTrial: (id, plan) => api.post(`/api/platform/trials/${id}/convert`, { plan }).then(r => r.data),
+  extendTrial: (id, days) => api.post(`/api/platform/trials/${id}/extend`, { days }).then(r => r.data),
+  getTrialEngagement: (id) => api.get(`/api/platform/trials/${id}/engagement`).then(r => r.data),
 };
 
 export const billingApi = {
@@ -100,6 +107,10 @@ export const onboardingApi = {
   getOnboarding: (slug) => api.get(`/api/restaurants/${slug}/onboarding`).then(r => r.data),
   completeItem: (slug, itemId, notes) => api.post(`/api/restaurants/${slug}/onboarding/${itemId}/complete`, { notes }).then(r => r.data),
   uncompleteItem: (slug, itemId) => api.post(`/api/restaurants/${slug}/onboarding/${itemId}/uncomplete`).then(r => r.data),
+};
+
+export const trialApi = {
+  trackEngagement: (slug, eventType, eventData) => api.post(`/api/restaurants/${slug}/trial/track`, { event_type: eventType, event_data: eventData }).then(r => r.data),
 };
 
 export const authApi = {

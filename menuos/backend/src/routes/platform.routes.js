@@ -8,6 +8,7 @@ import { getEmailTemplates, getEmailTemplate, updateEmailTemplate, previewEmailT
 import { getAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement } from '../controllers/announcements.controller.js';
 import { getSupportTickets, updateTicket, getTicketStats } from '../controllers/supportTickets.controller.js';
 import { getOnboardingItems, createOnboardingItem, updateOnboardingItem, deleteOnboardingItem, getOnboardingOverview } from '../controllers/onboarding.controller.js';
+import { getTrials, getTrialStats, startTrial, convertTrial, extendTrial, getTrialEngagement } from '../controllers/trialManagement.controller.js';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 
 const router = Router();
@@ -43,6 +44,12 @@ router.post('/onboarding-items', createOnboardingItem);
 router.patch('/onboarding-items/:id', updateOnboardingItem);
 router.delete('/onboarding-items/:id', deleteOnboardingItem);
 router.get('/onboarding/overview', getOnboardingOverview);
+router.get('/trials', getTrials);
+router.get('/trials/stats', getTrialStats);
+router.post('/trials', startTrial);
+router.post('/trials/:id/convert', convertTrial);
+router.post('/trials/:id/extend', extendTrial);
+router.get('/trials/:id/engagement', getTrialEngagement);
 router.patch('/restaurants/:id/plan', updatePlan);
 router.patch('/restaurants/:id/toggle', toggleRestaurant);
 router.patch('/users/:id/role', updateUserRole);
