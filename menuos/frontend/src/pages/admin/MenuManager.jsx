@@ -5,12 +5,37 @@ import { menuApi } from '../../api/queries.js';
 
 const EMPTY = { name: '', category: '', description: '', price: '', tags: '', allergens: '', image_url: '', video_url: '', is_available: true };
 
+// Cloudinary configuration - Replace with your credentials
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'your-cloud-name';
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'menuos_uploads';
+
+async function uploadToCloudinary(file, type = 'image') {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  
+  const resourceType = type === 'video' ? 'video' : 'image';
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || 'Upload failed');
+  }
+  
+  const data = await response.json();
+  return data.secure_url;
+}
+
 export default function MenuManager() {
   const { slug } = useParams();
   const qc = useQueryClient();
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
   const [showForm, setShowForm] = useState(false);
+  const [uploading, setUploading] = useState({ image: false, video: false });
 
   const { data: items = [], isLoading } = useQuery({ queryKey: ['menu-all', slug], queryFn: () => menuApi.getAll(slug) });
 
@@ -68,6 +93,28 @@ export default function MenuManager() {
 
   const categories = [...new Set(items.map(i => i.category))];
 
+  const handleFileUpload = async (e, type) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file size (10MB max for videos, 5MB for images)
+    const maxSize = type === 'video' ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert(`File too large. Max size: ${type === 'video' ? '10MB' : '5MB'}`);
+      return;
+    }
+    
+    setUploading(prev => ({ ...prev, [type]: true }));
+    try {
+      const url = await uploadToCloudinary(file, type);
+      setForm(prev => ({ ...prev, [`${type}_url`]: url }));
+    } catch (err) {
+      alert(`Upload failed: ${err.message}`);
+    } finally {
+      setUploading(prev => ({ ...prev, [type]: false }));
+    }
+  };
+
   return (
     <div style={{ padding: 32 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -100,13 +147,25 @@ export default function MenuManager() {
               <input style={S.input} value={form.allergens || ''} onChange={e => setForm(p => ({ ...p, allergens: e.target.value }))} placeholder="dairy, nuts, gluten" />
             </div>
             <div style={{ gridColumn: '1/-1' }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Photo URL</label>
-              <input style={S.input} value={form.image_url || ''} onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} placeholder="https://example.com/photo.jpg" />
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Photo</label>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <input style={{ ...S.input, flex: 1 }} value={form.image_url || ''} onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} placeholder="https://... or upload below" />
+                <label style={{ ...S.uploadBtn, opacity: uploading.image ? 0.6 : 1 }}>
+                  {uploading.image ? 'Uploading...' : '📁 Upload'}
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleFileUpload(e, 'image')} disabled={uploading.image} />
+                </label>
+              </div>
               {form.image_url && <img src={form.image_url} alt="Preview" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8, marginTop: 8 }} onError={e => e.target.style.display = 'none'} />}
             </div>
             <div style={{ gridColumn: '1/-1' }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Video URL (10 sec max)</label>
-              <input style={S.input} value={form.video_url || ''} onChange={e => setForm(p => ({ ...p, video_url: e.target.value }))} placeholder="https://example.com/video.mp4" />
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Video (10 sec max)</label>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <input style={{ ...S.input, flex: 1 }} value={form.video_url || ''} onChange={e => setForm(p => ({ ...p, video_url: e.target.value }))} placeholder="https://... or upload below" />
+                <label style={{ ...S.uploadBtn, opacity: uploading.video ? 0.6 : 1 }}>
+                  {uploading.video ? 'Uploading...' : '🎥 Upload'}
+                  <input type="file" accept="video/*" style={{ display: 'none' }} onChange={e => handleFileUpload(e, 'video')} disabled={uploading.video} />
+                </label>
+              </div>
               {form.video_url && (
                 <video src={form.video_url} style={{ width: 200, height: 150, borderRadius: 8, marginTop: 8 }} controls muted loop onError={e => e.target.style.display = 'none'} />
               )}
@@ -170,4 +229,17 @@ export default function MenuManager() {
   );
 }
 
-const S = { input: { width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, outline: 'none', fontFamily: 'inherit' } };
+const S = { 
+  input: { width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, outline: 'none', fontFamily: 'inherit' },
+  uploadBtn: { 
+    background: '#f1f5f9', 
+    color: '#374151', 
+    border: '1px solid #e2e8f0', 
+    padding: '8px 16px', 
+    borderRadius: 8, 
+    fontSize: 14, 
+    cursor: 'pointer',
+    fontWeight: 500,
+    whiteSpace: 'nowrap'
+  }
+};
