@@ -48,7 +48,7 @@ export async function getQRCode(req, res, next) {
 
     const table = result.rows[0];
     // Use frontend URL for QR codes - customers access menu directly
-    const base = process.env.QR_BASE_URL || `https://soothing-embrace-production.up.railway.com`;
+    const base = process.env.QR_BASE_URL || `https://soothing-embrace-production.up.railway.app`;
     // Common QR code - points to menu without table number
     // Customer will enter table number at checkout
     const url = `${base}/r/${req.tenant.slug}/menu`;

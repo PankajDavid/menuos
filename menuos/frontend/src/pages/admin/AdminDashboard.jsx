@@ -113,7 +113,7 @@ export default function AdminDashboard() {
   });
 
   // Use frontend URL for QR code
-  const menuUrl = `https://soothing-embrace-production.up.railway.com/r/${slug}/menu`;
+  const menuUrl = `https://soothing-embrace-production.up.railway.app/r/${slug}/menu`;
 
   return (
     <div style={{ padding: 32 }}>
