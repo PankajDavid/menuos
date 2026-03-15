@@ -154,6 +154,11 @@ CREATE TABLE IF NOT EXISTS orders (
   order_number      VARCHAR(20) NOT NULL,
   mobile_number     VARCHAR(20) NOT NULL,
   table_number      VARCHAR(20) NOT NULL,
+  subtotal          DECIMAL(10,2) NOT NULL DEFAULT 0,
+  discount_type     VARCHAR(20), -- 'percentage' or 'fixed'
+  discount_value    DECIMAL(10,2) DEFAULT 0,
+  discount_amount   DECIMAL(10,2) DEFAULT 0,
+  discount_code     VARCHAR(50),
   total_amount      DECIMAL(10,2) NOT NULL,
   payment_status    payment_status DEFAULT 'pending',
   payment_tx_id     VARCHAR(100),
@@ -163,6 +168,31 @@ CREATE TABLE IF NOT EXISTS orders (
   updated_at        TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(restaurant_id, order_number)
 );
+
+-- Add discount columns if they don't exist (for existing databases)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'orders' AND column_name = 'subtotal') THEN
+        ALTER TABLE orders ADD COLUMN subtotal DECIMAL(10,2) NOT NULL DEFAULT 0;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'orders' AND column_name = 'discount_type') THEN
+        ALTER TABLE orders ADD COLUMN discount_type VARCHAR(20);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'orders' AND column_name = 'discount_value') THEN
+        ALTER TABLE orders ADD COLUMN discount_value DECIMAL(10,2) DEFAULT 0;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'orders' AND column_name = 'discount_amount') THEN
+        ALTER TABLE orders ADD COLUMN discount_amount DECIMAL(10,2) DEFAULT 0;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'orders' AND column_name = 'discount_code') THEN
+        ALTER TABLE orders ADD COLUMN discount_code VARCHAR(50);
+    END IF;
+END $$;
 
 -- ── ORDER ITEMS ───────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS order_items (

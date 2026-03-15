@@ -15,7 +15,7 @@ export async function initiatePayment(req, res, next) {
 // POST /api/restaurants/:slug/orders  — create order after payment
 export async function createOrder(req, res, next) {
   try {
-    const { mobile_number, table_number, items, notes, payment_tx_id } = req.body;
+    const { mobile_number, table_number, items, notes, payment_tx_id, discount } = req.body;
 
     if (!mobile_number || !table_number || !items?.length) {
       return res.status(400).json({ error: 'mobile_number, table_number and items are required' });
@@ -26,7 +26,7 @@ export async function createOrder(req, res, next) {
       return res.status(400).json({ error: 'Payment transaction ID required' });
     }
 
-    // Calculate total from DB prices (never trust client-side prices)
+    // Calculate subtotal from DB prices (never trust client-side prices)
     const itemIds = items.map(i => i.menu_item_id);
     const menuResult = await query(
       'SELECT id, name, price FROM menu_items WHERE id = ANY($1) AND restaurant_id = $2 AND is_available = TRUE',
@@ -34,14 +34,34 @@ export async function createOrder(req, res, next) {
     );
 
     const menuMap = Object.fromEntries(menuResult.rows.map(m => [m.id, m]));
-    let total = 0;
+    let subtotal = 0;
     const orderItems = items.map(item => {
       const menuItem = menuMap[item.menu_item_id];
       if (!menuItem) throw Object.assign(new Error(`Item ${item.menu_item_id} not found`), { status: 400 });
       const lineTotal = menuItem.price * item.quantity;
-      total += lineTotal;
+      subtotal += lineTotal;
       return { menu_item_id: menuItem.id, name: menuItem.name, price: menuItem.price, quantity: item.quantity };
     });
+
+    // Calculate discount
+    let discountAmount = 0;
+    let discountType = null;
+    let discountValue = 0;
+    let discountCode = null;
+
+    if (discount) {
+      discountType = discount.type; // 'percentage' or 'fixed'
+      discountValue = discount.value || 0;
+      discountCode = discount.code || null;
+
+      if (discountType === 'percentage') {
+        discountAmount = (subtotal * discountValue) / 100;
+      } else if (discountType === 'fixed') {
+        discountAmount = Math.min(discountValue, subtotal);
+      }
+    }
+
+    const totalAmount = subtotal - discountAmount;
 
     // Generate order number
     const countResult = await query(
@@ -53,11 +73,13 @@ export async function createOrder(req, res, next) {
     // Create order
     const orderResult = await query(
       `INSERT INTO orders
-        (restaurant_id, order_number, mobile_number, table_number, total_amount,
+        (restaurant_id, order_number, mobile_number, table_number, subtotal,
+         discount_type, discount_value, discount_amount, discount_code, total_amount,
          payment_status, payment_tx_id, notes)
-       VALUES ($1,$2,$3,$4,$5,'paid',$6,$7) RETURNING *`,
-      [req.tenant.id, orderNum, mobile_number, table_number,
-       total.toFixed(2), payment_tx_id, notes || null]
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'paid',$11,$12) RETURNING *`,
+      [req.tenant.id, orderNum, mobile_number, table_number, subtotal.toFixed(2),
+       discountType, discountValue.toFixed(2), discountAmount.toFixed(2), discountCode,
+       totalAmount.toFixed(2), payment_tx_id, notes || null]
     );
     const order = orderResult.rows[0];
 

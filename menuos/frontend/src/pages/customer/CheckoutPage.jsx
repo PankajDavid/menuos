@@ -9,13 +9,30 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const items = useCartStore(s => s.items);
   const clearCart = useCartStore(s => s.clearCart);
-  const total = items.reduce((s, i) => s + parseFloat(i.price) * i.qty, 0);
+  
+  const subtotal = items.reduce((s, i) => s + parseFloat(i.price) * i.qty, 0);
+  
   const [mobile, setMobile] = useState('');
   const [tableNumber, setTableNumber] = useState(state?.tableNumber || '');
   const [customerName, setCustomerName] = useState('');
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState('idle'); // idle | paying | placing | done | error
   const [errorMsg, setErrorMsg] = useState('');
+  
+  // Discount state
+  const [discountType, setDiscountType] = useState(''); // '' | 'percentage' | 'fixed'
+  const [discountValue, setDiscountValue] = useState('');
+  const [discountCode, setDiscountCode] = useState('');
+  const [showDiscount, setShowDiscount] = useState(false);
+
+  // Calculate discount
+  const discountAmount = discountType && discountValue
+    ? discountType === 'percentage'
+      ? Math.min((subtotal * parseFloat(discountValue)) / 100, subtotal)
+      : Math.min(parseFloat(discountValue), subtotal)
+    : 0;
+  
+  const total = subtotal - discountAmount;
 
   const handleOrder = async () => {
     if (!customerName.trim()) return setErrorMsg('Please enter your name');
@@ -32,15 +49,26 @@ export default function CheckoutPage() {
 
       setStatus('placing');
 
-      // Step 2: Create order
-      const order = await orderApi.create(slug, {
+      // Step 2: Create order with discount
+      const orderData = {
         customer_name: customerName,
         mobile_number: mobile,
         table_number: tableNumber,
         notes,
         payment_tx_id: payment.transactionId,
         items: items.map(i => ({ menu_item_id: i.id, quantity: i.qty })),
-      });
+      };
+
+      // Add discount if applied
+      if (discountType && discountValue && discountAmount > 0) {
+        orderData.discount = {
+          type: discountType,
+          value: parseFloat(discountValue),
+          code: discountCode || null,
+        };
+      }
+
+      const order = await orderApi.create(slug, orderData);
 
       clearCart();
       navigate(`/r/${slug}/order-confirm`, { state: { order } });
@@ -68,9 +96,120 @@ export default function CheckoutPage() {
               <span style={{ color: '#C8A84B' }}>₹{(parseFloat(item.price) * item.qty).toFixed(2)}</span>
             </div>
           ))}
+          
+          {/* Subtotal */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 12, borderBottom: '1px solid #2A2520', paddingBottom: 8 }}>
+            <span style={{ color: '#A89880' }}>Subtotal</span>
+            <span>₹{subtotal.toFixed(2)}</span>
+          </div>
+          
+          {/* Discount */}
+          {discountAmount > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8, color: '#16A34A' }}>
+              <span>Discount {discountType === 'percentage' ? `(${discountValue}%)` : ''}</span>
+              <span>-₹{discountAmount.toFixed(2)}</span>
+            </div>
+          )}
+          
+          {/* Total */}
           <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 12, fontFamily: 'Playfair Display, serif', fontSize: 20 }}>
             <span>Total</span><span style={{ color: '#C8A84B' }}>₹{total.toFixed(2)}</span>
           </div>
+        </div>
+
+        {/* Discount Section */}
+        <div style={{ background: '#161310', borderRadius: 8, padding: 16, marginBottom: 20 }}>
+          <button 
+            onClick={() => setShowDiscount(!showDiscount)}
+            style={{ background: 'none', border: 'none', color: '#C8A84B', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            <span>{showDiscount ? '▼' : '▶'}</span>
+            <span>🏷️ Apply Discount</span>
+          </button>
+          
+          {showDiscount && (
+            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => setDiscountType('percentage')}
+                  style={{
+                    flex: 1,
+                    padding: '10px',
+                    background: discountType === 'percentage' ? '#C8A84B' : '#2A2520',
+                    border: 'none',
+                    borderRadius: 6,
+                    color: discountType === 'percentage' ? '#0C0A07' : '#F2E8D0',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Percentage %
+                </button>
+                <button
+                  onClick={() => setDiscountType('fixed')}
+                  style={{
+                    flex: 1,
+                    padding: '10px',
+                    background: discountType === 'fixed' ? '#C8A84B' : '#2A2520',
+                    border: 'none',
+                    borderRadius: 6,
+                    color: discountType === 'fixed' ? '#0C0A07' : '#F2E8D0',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Fixed Amount ₹
+                </button>
+              </div>
+              
+              {discountType && (
+                <>
+                  <input
+                    type="number"
+                    value={discountValue}
+                    onChange={(e) => setDiscountValue(e.target.value)}
+                    placeholder={discountType === 'percentage' ? 'Enter % (e.g. 10)' : 'Enter amount (e.g. 50)'}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      background: '#0C0A07',
+                      border: '1px solid #2A2520',
+                      borderRadius: 6,
+                      color: '#F2E8D0',
+                      fontSize: 15,
+                    }}
+                  />
+                  <input
+                    type="text"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value)}
+                    placeholder="Discount code (optional)"
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      background: '#0C0A07',
+                      border: '1px solid #2A2520',
+                      borderRadius: 6,
+                      color: '#F2E8D0',
+                      fontSize: 15,
+                    }}
+                  />
+                  <button
+                    onClick={() => { setDiscountType(''); setDiscountValue(''); setDiscountCode(''); }}
+                    style={{
+                      background: 'transparent',
+                      border: '1px solid #ef4444',
+                      color: '#ef4444',
+                      padding: '8px',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      fontSize: 13,
+                    }}
+                  >
+                    Remove Discount
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Details */}

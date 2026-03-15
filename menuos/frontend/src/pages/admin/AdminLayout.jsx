@@ -11,6 +11,7 @@ const NAV = [
   { to: 'settings', label: 'Settings', icon: '⚙️' },
   { to: 'subscription', label: 'Subscription', icon: '📋' },
   { to: 'invoices', label: 'Invoices', icon: '🧾' },
+  { to: 'reports', label: 'Reports', icon: '📈' },
 ];
 
 export default function AdminLayout() {

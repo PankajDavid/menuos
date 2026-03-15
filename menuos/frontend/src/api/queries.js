@@ -155,6 +155,14 @@ export const messagingApi = {
   sendMessage: (slug, id, content) => api.post(`/api/restaurants/${slug}/conversations/${id}/messages`, { content }).then(r => r.data),
 };
 
+export const reportsApi = {
+  getSummary: (slug) => api.get(`/api/restaurants/${slug}/reports/summary`).then(r => r.data),
+  getDaily: (slug, params) => api.get(`/api/restaurants/${slug}/reports/daily`, { params }).then(r => r.data),
+  getMonthly: (slug, params) => api.get(`/api/restaurants/${slug}/reports/monthly`, { params }).then(r => r.data),
+  getItems: (slug, params) => api.get(`/api/restaurants/${slug}/reports/items`, { params }).then(r => r.data),
+  exportReport: (slug, params) => api.get(`/api/restaurants/${slug}/reports/export`, { params, responseType: 'blob' }).then(r => r.data),
+};
+
 export const authApi = {
   forgotPassword: (email) => api.post('/api/auth/forgot-password', { email }).then(r => r.data),
   resetPassword: (token, password) => api.post('/api/auth/reset-password', { token, password }).then(r => r.data),

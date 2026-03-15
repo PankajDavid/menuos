@@ -140,7 +140,19 @@ export default function OrdersPanel() {
                   <span style={{ background: STATUS_COLORS[order.order_status] + '20', color: STATUS_COLORS[order.order_status], padding: '4px 12px', borderRadius: 20, fontSize: 13, fontWeight: 600 }}>
                     {order.order_status}
                   </span>
-                  <span style={{ color: '#C8A84B', fontWeight: 700, fontSize: 18 }}>₹{parseFloat(order.total_amount).toFixed(2)}</span>
+                  <div style={{ textAlign: 'right' }}>
+                    {order.discount_amount > 0 && (
+                      <div style={{ fontSize: 11, color: '#16A34A', textDecoration: 'line-through' }}>
+                        ₹{parseFloat(order.subtotal || order.total_amount + order.discount_amount).toFixed(2)}
+                      </div>
+                    )}
+                    <span style={{ color: '#C8A84B', fontWeight: 700, fontSize: 18 }}>₹{parseFloat(order.total_amount).toFixed(2)}</span>
+                    {order.discount_amount > 0 && (
+                      <div style={{ fontSize: 11, color: '#16A34A' }}>
+                        -₹{parseFloat(order.discount_amount).toFixed(2)} {order.discount_type === 'percentage' ? `(${order.discount_value}%)` : ''}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

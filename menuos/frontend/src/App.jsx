@@ -20,6 +20,7 @@ import RestaurantSettings from './pages/admin/RestaurantSettings.jsx';
 import StaffManagement from './pages/admin/StaffManagement.jsx';
 import Subscription from './pages/admin/Subscription.jsx';
 import Invoices from './pages/admin/Invoices.jsx';
+import Reports from './pages/admin/Reports.jsx';
 import PlatformAdmin from './pages/platform/PlatformAdmin.jsx';
 
 export default function App() {
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="staff" element={<StaffManagement />} />
           <Route path="subscription" element={<Subscription />} />
           <Route path="invoices" element={<Invoices />} />
+          <Route path="reports" element={<Reports />} />
         </Route>
       </Route>
 
