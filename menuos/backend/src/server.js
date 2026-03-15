@@ -63,8 +63,15 @@ const PORT = process.env.PORT || 4000;
 async function boot() {
   console.log('🚀 Starting MenuOS API...');
   console.log(`📡 PORT: ${PORT}`);
+  console.log(`🔧 NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
   
   // Start server first so healthcheck passes
+  httpServer.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ MenuOS API running on port ${PORT}`);
+    console.log(`🩺 Health check available at: http://0.0.0.0:${PORT}/health`);
+  });
+  
+  // Initialize Socket.IO after server is listening
   try {
     initSocket(httpServer);
     console.log('✅ Socket.IO initialized');
@@ -72,14 +79,11 @@ async function boot() {
     console.error('⚠️ Socket initialization failed:', err.message);
   }
   
-  httpServer.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 MenuOS API running on port ${PORT}`);
-  });
-  
   // Initialize DB and run migrations in background (don't block server startup)
   try {
     await initDB();
     await migrate();
+    console.log('✅ Database initialized');
     
     // Seed sample menu for Panky's restaurant
     if (process.env.SEED_MENU === 'true') {
