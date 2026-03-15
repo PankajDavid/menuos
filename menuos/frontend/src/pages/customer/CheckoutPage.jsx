@@ -19,20 +19,12 @@ export default function CheckoutPage() {
   const [status, setStatus] = useState('idle'); // idle | paying | placing | done | error
   const [errorMsg, setErrorMsg] = useState('');
   
-  // Discount state
-  const [discountType, setDiscountType] = useState(''); // '' | 'percentage' | 'fixed'
-  const [discountValue, setDiscountValue] = useState('');
+  // Discount code state - only discount codes provided by admin/staff
   const [discountCode, setDiscountCode] = useState('');
   const [showDiscount, setShowDiscount] = useState(false);
+  const [validatingCode, setValidatingCode] = useState(false);
 
-  // Calculate discount
-  const discountAmount = discountType && discountValue
-    ? discountType === 'percentage'
-      ? Math.min((subtotal * parseFloat(discountValue)) / 100, subtotal)
-      : Math.min(parseFloat(discountValue), subtotal)
-    : 0;
-  
-  const total = subtotal - discountAmount;
+  const total = subtotal; // No discount applied at checkout - admin will apply later
 
   const handleOrder = async () => {
     if (!customerName.trim()) return setErrorMsg('Please enter your name');
@@ -49,7 +41,7 @@ export default function CheckoutPage() {
 
       setStatus('placing');
 
-      // Step 2: Create order with discount
+      // Step 2: Create order with discount code (if provided)
       const orderData = {
         customer_name: customerName,
         mobile_number: mobile,
@@ -59,13 +51,9 @@ export default function CheckoutPage() {
         items: items.map(i => ({ menu_item_id: i.id, quantity: i.qty })),
       };
 
-      // Add discount if applied
-      if (discountType && discountValue && discountAmount > 0) {
-        orderData.discount = {
-          type: discountType,
-          value: parseFloat(discountValue),
-          code: discountCode || null,
-        };
+      // Add discount code if provided (admin will validate and apply)
+      if (discountCode.trim()) {
+        orderData.discount_code = discountCode.trim();
       }
 
       const order = await orderApi.create(slug, orderData);
@@ -97,104 +85,50 @@ export default function CheckoutPage() {
             </div>
           ))}
           
-          {/* Subtotal */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 12, borderBottom: '1px solid #2A2520', paddingBottom: 8 }}>
-            <span style={{ color: '#A89880' }}>Subtotal</span>
-            <span>₹{subtotal.toFixed(2)}</span>
-          </div>
-          
-          {/* Discount */}
-          {discountAmount > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8, color: '#16A34A' }}>
-              <span>Discount {discountType === 'percentage' ? `(${discountValue}%)` : ''}</span>
-              <span>-₹{discountAmount.toFixed(2)}</span>
-            </div>
-          )}
-          
           {/* Total */}
           <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 12, fontFamily: 'Playfair Display, serif', fontSize: 20 }}>
             <span>Total</span><span style={{ color: '#C8A84B' }}>₹{total.toFixed(2)}</span>
           </div>
         </div>
 
-        {/* Discount Section */}
+        {/* Discount Code Section */}
         <div style={{ background: '#161310', borderRadius: 8, padding: 16, marginBottom: 20 }}>
           <button 
             onClick={() => setShowDiscount(!showDiscount)}
-            style={{ background: 'none', border: 'none', color: '#C8A84B', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+            style={{ background: 'none', border: 'none', color: '#C8A84B', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}
           >
             <span>{showDiscount ? '▼' : '▶'}</span>
-            <span>🏷️ Apply Discount</span>
+            <span>🏷️ Have a Discount Code?</span>
           </button>
           
           {showDiscount && (
-            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  onClick={() => setDiscountType('percentage')}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    background: discountType === 'percentage' ? '#C8A84B' : '#2A2520',
-                    border: 'none',
-                    borderRadius: 6,
-                    color: discountType === 'percentage' ? '#0C0A07' : '#F2E8D0',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Percentage %
-                </button>
-                <button
-                  onClick={() => setDiscountType('fixed')}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    background: discountType === 'fixed' ? '#C8A84B' : '#2A2520',
-                    border: 'none',
-                    borderRadius: 6,
-                    color: discountType === 'fixed' ? '#0C0A07' : '#F2E8D0',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Fixed Amount ₹
-                </button>
-              </div>
-              
-              {discountType && (
-                <>
-                  <input
-                    type="number"
-                    value={discountValue}
-                    onChange={(e) => setDiscountValue(e.target.value)}
-                    placeholder={discountType === 'percentage' ? 'Enter % (e.g. 10)' : 'Enter amount (e.g. 50)'}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      background: '#0C0A07',
-                      border: '1px solid #2A2520',
-                      borderRadius: 6,
-                      color: '#F2E8D0',
-                      fontSize: 15,
-                    }}
-                  />
-                  <input
-                    type="text"
-                    value={discountCode}
-                    onChange={(e) => setDiscountCode(e.target.value)}
-                    placeholder="Discount code (optional)"
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      background: '#0C0A07',
-                      border: '1px solid #2A2520',
-                      borderRadius: 6,
-                      color: '#F2E8D0',
-                      fontSize: 15,
-                    }}
-                  />
+            <div style={{ marginTop: 16 }}>
+              <p style={{ fontSize: 12, color: '#A89880', marginBottom: 12 }}>
+                Enter the discount code provided by your server or staff member.
+              </p>
+              <input
+                type="text"
+                value={discountCode}
+                onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                placeholder="Enter discount code (e.g. SAVE10)"
+                style={{
+                  width: '100%',
+                  padding: '12px 14px',
+                  background: '#0C0A07',
+                  border: '1px solid #2A2520',
+                  borderRadius: 6,
+                  color: '#F2E8D0',
+                  fontSize: 15,
+                  textTransform: 'uppercase',
+                  marginBottom: 8,
+                }}
+              />
+              {discountCode && (
+                <div style={{ display: 'flex', gap: 8 }}>
                   <button
-                    onClick={() => { setDiscountType(''); setDiscountValue(''); setDiscountCode(''); }}
+                    onClick={() => setDiscountCode('')}
                     style={{
+                      flex: 1,
                       background: 'transparent',
                       border: '1px solid #ef4444',
                       color: '#ef4444',
@@ -204,9 +138,9 @@ export default function CheckoutPage() {
                       fontSize: 13,
                     }}
                   >
-                    Remove Discount
+                    Clear
                   </button>
-                </>
+                </div>
               )}
             </div>
           )}

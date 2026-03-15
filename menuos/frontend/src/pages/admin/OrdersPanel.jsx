@@ -33,6 +33,7 @@ function PrintSlip({ order, restaurant }) {
               .tax-note { text-align: center; font-size: 10px; color: #666; margin: 8px 0; font-style: italic; }
               .footer { text-align: center; margin-top: 15px; font-size: 9px; border-top: 1px dashed #000; padding-top: 8px; }
               .notes { background: #fff3cd; padding: 5px; margin: 8px 0; font-style: italic; font-size: 10px; }
+              .discount { color: #16A34A; font-size: 11px; }
             }
           </style>
         </head>
@@ -64,6 +65,13 @@ function PrintSlip({ order, restaurant }) {
             `).join('')}
           </div>
           
+          ${order.discount_amount > 0 ? `
+            <div class="discount">
+              Subtotal: ₹${(parseFloat(order.total_amount) + parseFloat(order.discount_amount)).toFixed(2)}<br/>
+              Discount ${order.discount_type === 'percentage' ? `(${order.discount_value}%)` : ''}: -₹${parseFloat(order.discount_amount).toFixed(2)}<br/>
+            </div>
+          ` : ''}
+          
           <div class="total">
             Total: ₹${parseFloat(order.total_amount).toFixed(2)}
           </div>
@@ -88,8 +96,189 @@ function PrintSlip({ order, restaurant }) {
 
   return (
     <button onClick={handlePrint} style={{ padding: '6px 12px', background: '#1A1A2E', color: '#C8A84B', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>
-      🖨️ Print Slip
+      🖨️ Print
     </button>
+  );
+}
+
+function DiscountModal({ order, onClose, onApply }) {
+  const [discountType, setDiscountType] = useState('percentage');
+  const [discountValue, setDiscountValue] = useState('');
+  const [discountCode, setDiscountCode] = useState('');
+  const [reason, setReason] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onApply({
+      discount_type: discountType,
+      discount_value: parseFloat(discountValue),
+      discount_code: discountCode || null,
+      reason: reason || null,
+    });
+  };
+
+  const subtotal = parseFloat(order.subtotal || order.total_amount + (order.discount_amount || 0));
+  const previewDiscount = discountValue
+    ? discountType === 'percentage'
+      ? (subtotal * parseFloat(discountValue)) / 100
+      : Math.min(parseFloat(discountValue), subtotal)
+    : 0;
+  const newTotal = subtotal - previewDiscount;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0, left: 0, right: 0, bottom: 0,
+      background: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+    }} onClick={onClose}>
+      <div style={{
+        background: '#fff',
+        borderRadius: 12,
+        padding: 24,
+        width: '90%',
+        maxWidth: 400,
+      }} onClick={e => e.stopPropagation()}>
+        <h3 style={{ margin: '0 0 16px', fontSize: 18 }}>🏷️ Apply Discount</h3>
+        <p style={{ color: '#64748b', fontSize: 13, marginBottom: 16 }}>
+          Order #{order.order_number} - Current Total: ₹{subtotal.toFixed(2)}
+        </p>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setDiscountType('percentage')}
+              style={{
+                flex: 1,
+                padding: 10,
+                background: discountType === 'percentage' ? '#C8A84B' : '#f1f5f9',
+                border: 'none',
+                borderRadius: 6,
+                color: discountType === 'percentage' ? '#fff' : '#64748b',
+                cursor: 'pointer',
+              }}
+            >
+              Percentage %
+            </button>
+            <button
+              type="button"
+              onClick={() => setDiscountType('fixed')}
+              style={{
+                flex: 1,
+                padding: 10,
+                background: discountType === 'fixed' ? '#C8A84B' : '#f1f5f9',
+                border: 'none',
+                borderRadius: 6,
+                color: discountType === 'fixed' ? '#fff' : '#64748b',
+                cursor: 'pointer',
+              }}
+            >
+              Fixed Amount ₹
+            </button>
+          </div>
+
+          <input
+            type="number"
+            value={discountValue}
+            onChange={e => setDiscountValue(e.target.value)}
+            placeholder={discountType === 'percentage' ? 'Enter % (e.g. 10)' : 'Enter amount (e.g. 50)'}
+            style={{
+              padding: '10px 12px',
+              border: '1px solid #e2e8f0',
+              borderRadius: 6,
+              fontSize: 14,
+            }}
+            required
+          />
+
+          <input
+            type="text"
+            value={discountCode}
+            onChange={e => setDiscountCode(e.target.value)}
+            placeholder="Discount code (optional)"
+            style={{
+              padding: '10px 12px',
+              border: '1px solid #e2e8f0',
+              borderRadius: 6,
+              fontSize: 14,
+            }}
+          />
+
+          <input
+            type="text"
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+            placeholder="Reason for discount (optional)"
+            style={{
+              padding: '10px 12px',
+              border: '1px solid #e2e8f0',
+              borderRadius: 6,
+              fontSize: 14,
+            }}
+          />
+
+          {previewDiscount > 0 && (
+            <div style={{
+              background: '#f0fdf4',
+              border: '1px solid #16A34A',
+              borderRadius: 6,
+              padding: 12,
+              fontSize: 13,
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span>Subtotal:</span>
+                <span>₹{subtotal.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16A34A', marginBottom: 4 }}>
+                <span>Discount:</span>
+                <span>-₹{previewDiscount.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, borderTop: '1px solid #16A34A', paddingTop: 4 }}>
+                <span>New Total:</span>
+                <span>₹{newTotal.toFixed(2)}</span>
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                flex: 1,
+                padding: 10,
+                background: '#f1f5f9',
+                border: 'none',
+                borderRadius: 6,
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!discountValue || parseFloat(discountValue) <= 0}
+              style={{
+                flex: 1,
+                padding: 10,
+                background: '#16A34A',
+                border: 'none',
+                borderRadius: 6,
+                color: '#fff',
+                cursor: 'pointer',
+                opacity: (!discountValue || parseFloat(discountValue) <= 0) ? 0.5 : 1,
+              }}
+            >
+              Apply Discount
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -97,6 +286,7 @@ export default function OrdersPanel() {
   const { slug } = useParams();
   const qc = useQueryClient();
   const [filter, setFilter] = useState('');
+  const [discountOrder, setDiscountOrder] = useState(null);
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['orders', slug, filter],
@@ -114,6 +304,20 @@ export default function OrdersPanel() {
     onSuccess: () => qc.invalidateQueries(['orders', slug]),
   });
 
+  const discountMutation = useMutation({
+    mutationFn: ({ id, data }) => orderApi.applyDiscount(slug, id, data),
+    onSuccess: () => {
+      qc.invalidateQueries(['orders', slug]);
+      setDiscountOrder(null);
+    },
+  });
+
+  const handleApplyDiscount = (data) => {
+    if (discountOrder) {
+      discountMutation.mutate({ id: discountOrder.id, data });
+    }
+  };
+
   return (
     <div style={{ padding: 32 }}>
       <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 6 }}>Orders</h1>
@@ -125,6 +329,14 @@ export default function OrdersPanel() {
           </button>
         ))}
       </div>
+
+      {discountOrder && (
+        <DiscountModal
+          order={discountOrder}
+          onClose={() => setDiscountOrder(null)}
+          onApply={handleApplyDiscount}
+        />
+      )}
 
       {isLoading ? <div>Loading…</div> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -170,6 +382,14 @@ export default function OrdersPanel() {
                 <span style={{ color: '#94a3b8', fontSize: 13 }}>{new Date(order.created_at).toLocaleString()}</span>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <PrintSlip order={order} restaurant={restaurant} />
+                  {!order.discount_amount && !['cancelled'].includes(order.order_status) && (
+                    <button
+                      onClick={() => setDiscountOrder(order)}
+                      style={{ padding: '6px 12px', background: '#16A34A', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      🏷️ Discount
+                    </button>
+                  )}
                   {!['served','cancelled'].includes(order.order_status) && (
                     <select value={order.order_status}
                       onChange={e => updateMutation.mutate({ id: order.id, status: e.target.value })}

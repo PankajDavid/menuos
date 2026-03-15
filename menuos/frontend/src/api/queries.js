@@ -14,6 +14,7 @@ export const orderApi = {
   create: (slug, data) => api.post(`/api/restaurants/${slug}/orders`, data).then(r => r.data),
   getAll: (slug, params) => api.get(`/api/restaurants/${slug}/orders`, { params }).then(r => r.data),
   updateStatus: (slug, id, status) => api.patch(`/api/restaurants/${slug}/orders/${id}/status`, { status }).then(r => r.data),
+  applyDiscount: (slug, id, data) => api.patch(`/api/restaurants/${slug}/orders/${id}/discount`, data).then(r => r.data),
 };
 
 export const tableApi = {
