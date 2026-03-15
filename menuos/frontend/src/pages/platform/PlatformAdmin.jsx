@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { platformApi } from '../../api/queries.js';
 import { useAuthStore } from '../../store/authStore.js';
@@ -34,6 +34,18 @@ export default function PlatformAdmin() {
   const [showSupportTickets, setShowSupportTickets] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [activeFeature, setActiveFeature] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) setSidebarOpen(false);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const { data: analytics } = useQuery({ queryKey: ['platform-analytics'], queryFn: platformApi.getAnalytics });
   const { data: restaurants = [] } = useQuery({ queryKey: ['platform-restaurants'], queryFn: platformApi.getRestaurants });
@@ -129,8 +141,33 @@ export default function PlatformAdmin() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0f172a', fontFamily: 'Inter, sans-serif', color: '#e2e8f0', display: 'flex' }}>
+      {/* Mobile Overlay */}
+      {isMobile && sidebarOpen && (
+        <div onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 999 }} />
+      )}
+
+      {/* Mobile Header */}
+      {isMobile && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 56, background: '#1e293b', display: 'flex', alignItems: 'center', padding: '0 16px', zIndex: 998, borderBottom: '1px solid #334155' }}>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'transparent', border: 'none', color: '#C8A84B', fontSize: 24, cursor: 'pointer', padding: 8, marginRight: 12 }}>☰</button>
+          <span style={{ fontFamily: 'Playfair Display, serif', color: '#C8A84B', fontSize: 18 }}>🍽 Platform Admin</span>
+        </div>
+      )}
+
       {/* Sidebar */}
-      <div style={{ width: 240, background: '#1e293b', borderRight: '1px solid #334155', display: 'flex', flexDirection: 'column' }}>
+      <div style={{
+        width: 240,
+        background: '#1e293b',
+        borderRight: '1px solid #334155',
+        display: 'flex',
+        flexDirection: 'column',
+        position: isMobile ? 'fixed' : 'sticky',
+        top: 0,
+        left: isMobile ? (sidebarOpen ? 0 : -240) : 0,
+        height: '100vh',
+        zIndex: 1000,
+        transition: 'left 0.3s ease',
+      }}>
         <div style={{ padding: '20px 16px', borderBottom: '1px solid #334155' }}>
           <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 20, color: '#C8A84B', textAlign: 'center' }}>🍽 MenuOS</div>
           <div style={{ fontSize: 12, color: '#64748b', textAlign: 'center', marginTop: 4 }}>Platform Admin</div>
@@ -140,7 +177,7 @@ export default function PlatformAdmin() {
           {sidebarItems.map(item => (
             <button
               key={item.id}
-              onClick={() => setActiveFeature(activeFeature === item.id ? null : item.id)}
+              onClick={() => { setActiveFeature(activeFeature === item.id ? null : item.id); isMobile && setSidebarOpen(false); }}
               style={{
                 width: '100%',
                 padding: '12px 16px',
@@ -170,8 +207,9 @@ export default function PlatformAdmin() {
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginTop: isMobile ? 56 : 0 }}>
         {/* Header */}
+        {!isMobile && (
         <div style={{ background: '#1e293b', padding: '16px 32px', display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: '1px solid #334155', position: 'relative' }}>
           <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, color: '#C8A84B' }}>🍽 MenuOS — Platform Admin</div>
           <div style={{ position: 'absolute', right: 32, display: 'flex', gap: 12 }}>
@@ -179,11 +217,12 @@ export default function PlatformAdmin() {
             <button onClick={() => handleExport('orders')} style={{ background: '#2563EB', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>📥 Export Orders</button>
           </div>
         </div>
+        )}
 
       {ActiveComponent ? (
         <ActiveComponent restaurants={restaurants} onClose={() => setActiveFeature(null)} />
       ) : (
-      <div style={{ padding: 32, overflow: 'auto' }}>
+      <div style={{ padding: isMobile ? 16 : 32, overflow: 'auto' }}>
         {/* Stats */}
         {analytics && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
